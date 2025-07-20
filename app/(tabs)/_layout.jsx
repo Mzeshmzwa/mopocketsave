@@ -56,32 +56,20 @@ const TabLayout = () => {
           }}
         />
         <Tabs.Screen
-          name="chat"
+          name="transactions"
           options={{
-            title: "Chat",
+            title: "Transactions",
             headerShown: false,
             tabBarIcon: ({ color }) => (
               <TabIcon
                 icon={() => (
-                  <Ionicons
-                    name="chatbubble-ellipses-outline"
-                    size={24}
-                    color={color}
-                  />
+                  <AntDesign name="swap" size={24} color={color} />
                 )}
                 color={color}
-                label="Chat"
-                isActive={pathname === "/chat"}
+                label="Transactions"
+                isActive={pathname === "/transactions"}
               />
             ),
-          }}
-          listeners={{
-            tabPress: (e) => {
-              if (!currentUser) {
-                e.preventDefault(); // Prevent navigation to Chat
-                router.replace("/sign-in"); // Redirect to sign-in
-              }
-            },
           }}
         />
         <Tabs.Screen
@@ -102,16 +90,16 @@ const TabLayout = () => {
           }}
         />
         <Tabs.Screen
-          name="location"
+          name="profile"
           options={{
-            title: "Location",
+            title: "Profile",
             headerShown: false,
             tabBarIcon: ({ color }) => (
               <TabIcon
                 icon={() => <Feather name="map-pin" size={24} color={color} />}
-                color={color}
-                label="Locations"
-                isActive={pathname === "/location"}
+                  <AntDesign name="user" size={24} color={color} />
+                label="Profile"
+                isActive={pathname === "/profile"}
               />
             ),
           }}
