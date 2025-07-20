@@ -107,18 +107,18 @@ const TabLayout = () => {
           }}
         />
         <Tabs.Screen
-          name="profile"
+          name="settings"
           options={{
-            title: "Profile",
+            title: "Settings",
             headerShown: false,
             tabBarIcon: ({ color }) => (
               <TabIcon
                 icon={() => (
-                  <AntDesign name="user" size={24} color={color} />
+                  <AntDesign name="setting" size={24} color={color} />
                 )}
                 color={color}
-                label="Profile"
-                isActive={pathname === "/profile"}
+                label="Settings"
+                isActive={pathname === "/settings"}
               />
             ),
           }}
