@@ -1,9 +1,7 @@
 import React, { useState, createContext, useContext, useEffect } from "react";
-import { onAuthStateChanged, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import { auth, db } from "../../firebase/firebaseConfig";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import axios from "axios";
 
 const AuthContext = createContext();
 
@@ -11,86 +9,133 @@ export const useAuth = () => {
   return useContext(AuthContext);
 };
 
+// Configure axios base URL - update this to match your backend
+const API_BASE_URL = "http://localhost:5001/esavior-332e9/us-central1/api";
+axios.defaults.baseURL = API_BASE_URL;
+
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
+  const [authToken, setAuthToken] = useState(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const router = useRouter();
 
-  // Helper function to fetch additional user data from Firestore
-  const fetchUserDetails = async (uid) => {
+  // Load token and user data on app start
+  useEffect(() => {
+    loadStoredAuth();
+  }, []);
+
+  // Set up axios interceptor for auth token
+  useEffect(() => {
+    if (authToken) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+    } else {
+      delete axios.defaults.headers.common['Authorization'];
+    }
+  }, [authToken]);
+
+  const loadStoredAuth = async () => {
     try {
-      const q = query(
-        collection(db, "users"),
-        where("uid", "==", uid)
-      );
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        // Assuming only one document per user uid
-        return querySnapshot.docs[0].data();
+      const token = await AsyncStorage.getItem("authToken");
+      const userData = await AsyncStorage.getItem("userData");
+      
+      if (token && userData) {
+        setAuthToken(token);
+        setCurrentUser(JSON.parse(userData));
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       }
     } catch (error) {
-      console.error("Error fetching user details:", error);
-    }
-    return null;
-  };
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (userFromAuth) => {
-      if (userFromAuth) {
-        // Fetch additional details from Firestore
-        const additionalData = await fetchUserDetails(userFromAuth.uid);
-        // Merge Firebase Auth data with additional Firestore data
-        const completeUser = additionalData
-          ? { ...userFromAuth, ...additionalData }
-          : userFromAuth;
-        setCurrentUser(completeUser);
-        console.log("Current user:", completeUser);
-        await AsyncStorage.setItem("user", JSON.stringify(completeUser));
-      } else {
-        setCurrentUser(null);
-        console.log("No user is signed in.");masiko
-        await AsyncStorage.removeItem("user");
-      }
+      console.error("Error loading stored auth:", error);
+    } finally {
       setLoadingAuth(false);
-    });
-    return () => unsubscribe();
-  }, []);
+    }
+  };
 
   const login = async (email, password) => {
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const userFromAuth = userCredential.user;
-      const additionalData = await fetchUserDetails(userFromAuth.uid);
-      const completeUser = additionalData
-        ? { ...userFromAuth, ...additionalData }
-        : userFromAuth;
-      setCurrentUser(completeUser);
-      await AsyncStorage.setItem("user", JSON.stringify(completeUser));
-      return { success: true };
+      const response = await axios.post("/auth/login", {
+        userEmail: email,
+        password: password
+      });
+
+      if (response.data.success) {
+        const { accessToken, user } = response.data.data;
+        
+        // Store token and user data
+        await AsyncStorage.setItem("authToken", accessToken);
+        await AsyncStorage.setItem("userData", JSON.stringify(user));
+        
+        setAuthToken(accessToken);
+        setCurrentUser(user);
+        
+        return { success: true };
+      } else {
+        return { success: false, error: response.data.message };
+      }
     } catch (error) {
-      return { success: false, error: error.message };
+      console.error("Login error:", error);
+      return { 
+        success: false, 
+        error: error.response?.data?.message || "Login failed. Please try again." 
+      };
     }
   };
 
-  const resetPassword = async (email) => {
+  const register = async (userData) => {
     try {
-      await sendPasswordResetEmail(auth, email);
-      return { success: true };
+      const response = await axios.post("/auth/register", {
+        userName: userData.userName,
+        userEmail: userData.userEmail,
+        phoneNumber: userData.phoneNumber,
+        password: userData.password,
+        role: "user"
+      });
+
+      if (response.data.success) {
+        return { success: true };
+      } else {
+        return { success: false, error: response.data.message };
+      }
     } catch (error) {
-      return { success: false, error: error.message };
+      console.error("Registration error:", error);
+      return { 
+        success: false, 
+        error: error.response?.data?.message || "Registration failed. Please try again." 
+      };
     }
+  };
+
+  const logout = async () => {
+    try {
+      // Clear stored data
+      await AsyncStorage.removeItem("authToken");
+      await AsyncStorage.removeItem("userData");
+      
+      // Clear state
+      setAuthToken(null);
+      setCurrentUser(null);
+      
+      // Clear axios header
+      delete axios.defaults.headers.common['Authorization'];
+      
+      // Navigate to auth screen
+      router.replace("/(auth)/sign-in");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
+  const isAuthenticated = () => {
+    return !!authToken && !!currentUser;
   };
 
   const value = {
     currentUser,
+    authToken,
     login,
+    register,
+    logout,
     loadingAuth,
-    auth,
-    resetPassword, // Add this line
+    isAuthenticated
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -4,7 +4,7 @@ import { Tabs, usePathname, useRouter } from "expo-router";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { View, Text } from "react-native";
 import { useTheme } from "react-native-paper";
-import Feather from "@expo/vector-icons/Feather";
+import { MaterialIcons } from "@expo/vector-icons";
 import { useAuth } from "../../context/appstate/AuthContext"; // Import AuthContext
 
 const TabIcon = ({ icon, color, label, isActive }) => (
@@ -23,7 +23,7 @@ const TabIcon = ({ icon, color, label, isActive }) => (
 const TabLayout = () => {
   const { colors, dark } = useTheme();
   const pathname = usePathname(); // Get current active route
-  const { currentUser } = useAuth(); // Get user state from AuthContext
+  const { isAuthenticated } = useAuth(); // Get user state from AuthContext
   const router = useRouter();
 
   return (
@@ -43,14 +43,48 @@ const TabLayout = () => {
         <Tabs.Screen
           name="home"
           options={{
-            title: "Home",
+            title: "Dashboard",
             headerShown: false,
             tabBarIcon: ({ color }) => (
               <TabIcon
                 icon={() => <AntDesign name="home" size={24} color={color} />}
                 color={color}
-                label="Home"
+                label="Dashboard"
                 isActive={pathname === "/home"}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="deposits"
+          options={{
+            title: "Deposits",
+            headerShown: false,
+            tabBarIcon: ({ color }) => (
+              <TabIcon
+                icon={() => (
+                  <MaterialIcons name="savings" size={24} color={color} />
+                )}
+                color={color}
+                label="Deposits"
+                isActive={pathname === "/deposits"}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="withdrawals"
+          options={{
+            title: "Withdrawals",
+            headerShown: false,
+            tabBarIcon: ({ color }) => (
+              <TabIcon
+                icon={() => (
+                  <MaterialIcons name="account-balance-wallet" size={24} color={color} />
+                )}
+                color={color}
+                label="Withdrawals"
+                isActive={pathname === "/withdrawals"}
               />
             ),
           }}
@@ -73,31 +107,16 @@ const TabLayout = () => {
           }}
         />
         <Tabs.Screen
-          name="settings"
-          options={{
-            title: "Settings",
-            headerShown: false,
-            tabBarIcon: ({ color }) => (
-              <TabIcon
-                icon={() => (
-                  <Ionicons name="settings-outline" size={24} color={color} />
-                )}
-                color={color}
-                label="Settings"
-                isActive={pathname === "/settings"}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
           name="profile"
           options={{
             title: "Profile",
             headerShown: false,
             tabBarIcon: ({ color }) => (
               <TabIcon
-                icon={() => <Feather name="map-pin" size={24} color={color} />}
+                icon={() => (
                   <AntDesign name="user" size={24} color={color} />
+                )}
+                color={color}
                 label="Profile"
                 isActive={pathname === "/profile"}
               />

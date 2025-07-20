@@ -14,19 +14,16 @@ import { useTheme, Snackbar, TextInput } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import { CustomButton } from "./../../components";
 import { typography, images } from "../../constants";
-import { auth, db } from "../../firebase/firebaseConfig";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
+import { useAuth } from "../../context/appstate/AuthContext";
 import { Redirect } from "expo-router";
 import { Picker } from "@react-native-picker/picker";
-import * as ImagePicker from "expo-image-picker";
-// Import Firebase Storage methods
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const TOP_SECTION_HEIGHT = 250;
 
 const SignUp = () => {
   const { colors } = useTheme();
+  const { register } = useAuth();
 
   // Registration role: individual or cooperative
   const [role, setRole] = useState("individual");
@@ -36,13 +33,8 @@ const SignUp = () => {
     displayName: "",
     email: "",
     password: "",
-    registrationNumber: "", // For cooperatives
-    physicalAddress: "",
-    region: "", // For cooperatives
+    phoneNumber: "",
   });
-
-  // New state for profile picture URI
-  const [profilePic, setProfilePic] = useState(null);
 
   // Snackbar states
   const [snackbarVisible, setSnackbarVisible] = useState(false);
@@ -59,124 +51,44 @@ const SignUp = () => {
     }));
   };
 
-  const pickImage = async () => {
-    // No permissions request is necessary for launching the image library
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    console.log(result);
-
-    if (!result.canceled) {
-      setProfilePic(result.assets[0].uri);
-    }
-  };
-
-  // Helper to extract file name from URI
-  const getFileName = (uri) => uri.split("/").pop();
-
-  // Helper function to upload image to Firebase Storage
-  const uploadImageAsync = async (uri) => {
-    // Convert local URI to a blob
-    const blob = await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.onload = () => resolve(xhr.response);
-      xhr.onerror = () => reject(new Error("Network request failed"));
-      xhr.responseType = "blob";
-      xhr.open("GET", uri, true);
-      xhr.send(null);
-    });
-
-    // Get a reference to Firebase Storage
-    const storage = getStorage();
-    const fileRef = ref(storage, `profilePics/${getFileName(uri)}`);
-
-    // Upload the blob to Firebase Storage
-    await uploadBytes(fileRef, blob);
-    // Close the blob to free up memory
-    if (blob.close) blob.close();
-
-    // Retrieve the download URL
-    const downloadURL = await getDownloadURL(fileRef);
-    return downloadURL;
-  };
-
-  // Add this function before handleSubmit
-  const checkRegistrationNumberExists = async (regNumber) => {
-    const usersRef = collection(db, "users");
-    const q = query(usersRef, where("registrationNumber", "==", regNumber));
-    const querySnapshot = await getDocs(q);
-    return !querySnapshot.empty;
-  };
-
   const handleSubmit = async () => {
+    // Validate form
+    if (!formData.displayName.trim() || !formData.email.trim() || 
+        !formData.password.trim() || !formData.phoneNumber.trim()) {
+      setSnackbarMessage("Please fill in all required fields");
+      setSnackbarStyle({ backgroundColor: "red" });
+      setSnackbarVisible(true);
+      return;
+    }
+
     setLoading(true);
+    setSnackbarMessage("");
+    
     try {
-      // For cooperatives, check if registration number exists
-      if (role === "cooperative") {
-        const exists = await checkRegistrationNumberExists(formData.registrationNumber);
-        if (exists) {
-          setSnackbarMessage("Registration number already exists");
-          setSnackbarStyle({ backgroundColor: "red" });
-          setSnackbarVisible(true);
-          setLoading(false);
-          return;
-        }
-      }
-
-      // Continue with existing registration logic
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        formData.email,
-        formData.password,
-      );
-      console.log("User registered with uid:", userCredential.user.uid);
-
-      // Upload image if selected and get its URL
-      let profilePicUrl = null;
-      if (profilePic) {
-        profilePicUrl = await uploadImageAsync(profilePic);
-      }
-
-      // Prepare common user data with the download URL
       const userData = {
-        uid: userCredential.user.uid,
-        role: role,
-        displayName: formData.displayName,
-        email: formData.email,
-        profilePic: profilePicUrl, // URL from Firebase Storage
+        userName: formData.displayName,
+        userEmail: formData.email,
+        phoneNumber: formData.phoneNumber,
+        password: formData.password,
       };
 
-      if (role === "cooperative") {
-        Object.assign(userData, {
-          registrationNumber: formData.registrationNumber,
-          physicalAddress: formData.physicalAddress,
-          region: formData.region,
-        });
-      }
+      const result = await register(userData);
 
-      await addDoc(collection(db, "users"), userData);
+      if (result.success) {
+        setSnackbarMessage("Registration successful! Please sign in.");
+        setSnackbarStyle({ backgroundColor: "green" });
+        setSnackbarVisible(true);
 
-      setSnackbarMessage(
-        role === "cooperative"
-          ? "Cooperative successfully registered"
-          : "Individual successfully registered",
-      );
-      setSnackbarStyle({ backgroundColor: "green" });
-      setSnackbarVisible(true);
-
-      setTimeout(() => {
-        setRedirect(true);
-      }, 1500);
-    } catch (error) {
-      if (error.message.includes("auth/weak-password")) {
-        setSnackbarMessage("At least password must be 6 characters");
+        setTimeout(() => {
+          setRedirect(true);
+        }, 1500);
       } else {
-        setSnackbarMessage(error.message);
+        setSnackbarMessage(result.error || "Registration failed");
+        setSnackbarStyle({ backgroundColor: "red" });
+        setSnackbarVisible(true);
       }
+    } catch (error) {
+      setSnackbarMessage("Registration failed. Please try again.");
       setSnackbarStyle({ backgroundColor: "red" });
       setSnackbarVisible(true);
     } finally {
@@ -212,154 +124,46 @@ const SignUp = () => {
                 { color: colors.tertiary },
               ]}
             >
-              Register as
+              Create Account
             </Text>
-          </View>
-
-          {/* Toggle Buttons */}
-          <View style={styles.toggleContainer}>
-            <TouchableOpacity
-              style={[
-                styles.toggleButton,
-                role === "individual" && styles.activeButton,
-              ]}
-              onPress={() => setRole("individual")}
-            >
-              <Text style={[styles.toggleButtonText, typography.body]}>
-                Individual
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.toggleButton,
-                role === "cooperative" && styles.activeButton,
-              ]}
-              onPress={() => setRole("cooperative")}
-            >
-              <Text style={[styles.toggleButtonText, typography.body]}>
-                Cooperative
-              </Text>
-            </TouchableOpacity>
           </View>
 
           {/* Form Section */}
           <View style={styles.formContainer}>
-            {role === "individual" ? (
-              <>
-                <TextInput
-                  mode="outlined"
-                  label="Name"
-                  value={formData.displayName}
-                  onChangeText={(value) =>
-                    handleInputChange("displayName", value)
-                  }
-                  style={styles.input}
-                />
-                <TextInput
-                  mode="outlined"
-                  label="Email"
-                  value={formData.email}
-                  onChangeText={(value) => handleInputChange("email", value)}
-                  style={styles.input}
-                />
-                <TextInput
-                  mode="outlined"
-                  label="Password"
-                  secureTextEntry
-                  value={formData.password}
-                  onChangeText={(value) => handleInputChange("password", value)}
-                  style={styles.input}
-                />
-              </>
-            ) : (
-              <>
-                <TextInput
-                  mode="outlined"
-                  label="Cooperative Name"
-                  value={formData.displayName}
-                  onChangeText={(value) =>
-                    handleInputChange("displayName", value)
-                  }
-                  style={styles.input}
-                />
-                <TextInput
-                  mode="outlined"
-                  label="Registration Number"
-                  value={formData.registrationNumber}
-                  onChangeText={(value) =>
-                    handleInputChange("registrationNumber", value)
-                  }
-                  style={styles.input}
-                />
-                <TextInput
-                  mode="outlined"
-                  label="Physical Address"
-                  value={formData.physicalAddress}
-                  onChangeText={(value) =>
-                    handleInputChange("physicalAddress", value)
-                  }
-                  style={styles.input}
-                />
-                <View style={styles.pickerContainer}>
-                  <Text style={[styles.pickerLabel, { color: colors.text }]}>
-                    Region
-                  </Text>
-                  <Picker
-                    selectedValue={formData.region}
-                    style={[styles.picker, { flex: 1 }]}
-                    onValueChange={(value) =>
-                      handleInputChange("region", value)
-                    }
-                  >
-                    <Picker.Item label="Select Region" value="" />
-                    <Picker.Item label="Hhohho" value="Hhohho" />
-                    <Picker.Item label="Manzini" value="Manzini" />
-                    <Picker.Item label="Shiselweni" value="Shiselweni" />
-                    <Picker.Item label="Lubombo" value="Lubombo" />
-                  </Picker>
-                </View>
-                <TextInput
-                  mode="outlined"
-                  label="Email"
-                  value={formData.email}
-                  onChangeText={(value) => handleInputChange("email", value)}
-                  style={styles.input}
-                />
-                <TextInput
-                  mode="outlined"
-                  label="Password"
-                  secureTextEntry
-                  value={formData.password}
-                  onChangeText={(value) => handleInputChange("password", value)}
-                  style={styles.input}
-                />
-              </>
-            )}
-
-            {/* Profile Picture Upload Section */}
-            <View style={styles.uploadContainer}>
-              <TouchableOpacity
-                onPress={pickImage}
-                style={[styles.uploadButton, { borderColor: colors.primary }]}
-              >
-                <Ionicons
-                  name="attach-outline"
-                  size={24}
-                  color={colors.primary}
-                  style={{ marginRight: 8 }}
-                />
-                <Text
-                  style={[styles.uploadButtonText, { color: colors.primary }]}
-                >
-                  Upload Profile
-                </Text>
-              </TouchableOpacity>
-              {profilePic && (
-                <Text style={[styles.fileName, { color: colors.text }]}>
-                  {getFileName(profilePic)}
-                </Text>
-              )}
-            </View>
+            <TextInput
+              mode="outlined"
+              label="Full Name"
+              value={formData.displayName}
+              onChangeText={(value) =>
+                handleInputChange("displayName", value)
+              }
+              style={styles.input}
+            />
+            <TextInput
+              mode="outlined"
+              label="Email"
+              value={formData.email}
+              onChangeText={(value) => handleInputChange("email", value)}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              style={styles.input}
+            />
+            <TextInput
+              mode="outlined"
+              label="Phone Number"
+              value={formData.phoneNumber}
+              onChangeText={(value) => handleInputChange("phoneNumber", value)}
+              keyboardType="phone-pad"
+              style={styles.input}
+            />
+            <TextInput
+              mode="outlined"
+              label="Password"
+              secureTextEntry
+              value={formData.password}
+              onChangeText={(value) => handleInputChange("password", value)}
+              style={styles.input}
+            />
 
             {/* Submit Button */}
             <CustomButton
@@ -369,9 +173,7 @@ const SignUp = () => {
                 loading ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  `Register as ${
-                    role === "individual" ? "Individual" : "Cooperative"
-                  }`
+                  "Create Account"
                 )
               }
             />
@@ -400,7 +202,7 @@ const SignUp = () => {
               { color: colors.background },
             ]}
           >
-            CHAT CORNER
+            MO POCKET
           </Text>
         </View>
 

@@ -11,7 +11,7 @@ import { useTheme, Snackbar, TextInput } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import { CustomButton } from "./../../components";
 import { typography, images } from "../../constants";
-import { useAuth } from "../../context/appstate/AuthContext"; 
+import { useAuth } from "../../context/appstate/AuthContext";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
 const SignIn = () => {
@@ -29,26 +29,25 @@ const SignIn = () => {
   const [snackbarStyle, setSnackbarStyle] = useState({});
 
   const handleSignIn = async () => {
+    if (!email.trim() || !password.trim()) {
+      setSnackbarMessage("Please fill in all fields");
+      setSnackbarStyle({ backgroundColor: "red" });
+      setSnackbarVisible(true);
+      return;
+    }
+
     setLoading(true);
-    const result = await login(email.trim(), password);
+    const result = await login(email.trim(), password.trim());
+    
     if (result.success) {
       setSnackbarMessage("Successfully signed in!");
       setSnackbarStyle({ backgroundColor: "green" });
       setSnackbarVisible(true);
       setTimeout(() => {
-        // If returnTo is provided, decode and navigate to it, otherwise go to home
-        if (returnTo) {
-          router.replace(decodeURIComponent(returnTo));
-        } else {
-          router.replace("/(tabs)/home");
-        }
+        router.replace("/(tabs)/home");
       }, 1500);
     } else {
-      if (result.error.includes("auth/invalid-credential") || result.error.includes("auth/user-not-found")) {
-        setSnackbarMessage("Wrong password or email");
-      } else {
-        setSnackbarMessage(result.error);
-      }
+      setSnackbarMessage(result.error || "Login failed");
       setSnackbarStyle({ backgroundColor: "red" });
       setSnackbarVisible(true);
     }
@@ -62,7 +61,7 @@ const SignIn = () => {
      
         <Image source={images.logo} style={styles.logo} />
         <Text style={[styles.title, typography.title, { color: colors.background }]}>
-          CHAT CORNER
+          MO POCKET
         </Text>
       </View>
 
