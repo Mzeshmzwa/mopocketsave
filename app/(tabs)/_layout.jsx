@@ -5,7 +5,7 @@ import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { View, Text } from "react-native";
 import { useTheme } from "react-native-paper";
 import Feather from "@expo/vector-icons/Feather";
-import { useAuth } from "../../context/appstate/AuthContext"; // Import AuthContext
+ // Import AuthContext
 
 const TabIcon = ({ icon, color, label, isActive }) => (
   <View style={{ alignItems: "center", width: 70 }}>
@@ -96,8 +96,13 @@ const TabLayout = () => {
             headerShown: false,
             tabBarIcon: ({ color }) => (
               <TabIcon
-                icon={() => <Feather name="map-pin" size={24} color={color} />}
-                  <AntDesign name="user" size={24} color={color} />
+                icon={() => (
+                  <>
+                    <Feather name="map-pin" size={24} color={color} />
+                    <AntDesign name="user" size={24} color={color} />
+                  </>
+                )}
+                color={color}
                 label="Profile"
                 isActive={pathname === "/profile"}
               />
