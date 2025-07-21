@@ -6,29 +6,24 @@ import Swiper from "react-native-swiper";
 import { CustomButton } from "../../components";
 import { onboardingText, typography } from "../../constants";
 import { useTheme } from "react-native-paper";
-import { useOnboarding } from "../../hooks/useOnboarding";
+// Removed onboarding hook dependency
 
 import React from "react";
 
 const Onboarding = () => {
   const { colors } = useTheme();
-  const { isFirstLaunch, completeOnboarding } = useOnboarding();
+  const [isFirstLaunch, setIsFirstLaunch] = useState(true);
   const swiperRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const isLastSlide = activeIndex === onboardingText.length - 1;
 
   useEffect(() => {
-    if (isFirstLaunch === false) {
-      router.replace("/(tabs)/home");
-    }
-  }, [isFirstLaunch]);
+    // Simple first launch check - can be enhanced later
+    setIsFirstLaunch(true);
+  }, []);
 
-  if (isFirstLaunch === null || isFirstLaunch === false) {
-    return null;
-  }
-
-  const handleComplete = async () => {
-    await completeOnboarding();
+  const handleComplete = () => {
+    setIsFirstLaunch(false);
     router.replace("/(tabs)/home");
   };
 
