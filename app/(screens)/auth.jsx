@@ -1,18 +1,18 @@
+import React, { useState, useEffect, useContext } from "react";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import CommonForm from "@/components/common-form";
-import { signInFormControls, signUpFormControls } from "@/config";
-import { AuthContext } from "@/context/auth-context";
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
+import { AuthContext } from "../../context/appstate/AuthContext";
+import CommonForm from "../../components/form-controls";
+import { signInFormControls, signUpFormControls } from "../../config/index";
 
-import { useContext, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-
-function AuthPage() {
+export default function AuthPage() {
   const [activeTab, setActiveTab] = useState("signin");
   const [loading, setLoading] = useState(true);
 
@@ -25,129 +25,190 @@ function AuthPage() {
     handleLoginUser,
   } = useContext(AuthContext);
 
-  function handleTabChange(value) {
-    setActiveTab(value);
-  }
+  const isSignInValid =
+    signInFormData?.userEmail !== "" && signInFormData?.password !== "";
 
-  function checkIfSignInFormIsValid() {
-    return (
-      signInFormData?.userEmail !== "" && signInFormData?.password !== ""
-    );
-  }
-
-  function checkIfSignUpFormIsValid() {
-    return (
-      signUpFormData?.userName !== "" &&
-      signUpFormData?.userEmail !== "" &&
-      signUpFormData?.phoneNumber !== "" &&
-      signUpFormData?.password !== ""
-    );
-  }
+  const isSignUpValid =
+    signUpFormData?.userName !== "" &&
+    signUpFormData?.userEmail !== "" &&
+    signUpFormData?.phoneNumber !== "" &&
+    signUpFormData?.password !== "";
 
   useEffect(() => {
     const timeout = setTimeout(() => {
       setLoading(false);
     }, 1000);
-
     return () => clearTimeout(timeout);
   }, []);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-white">
-        <div className="w-12 h-12 border-4 border-momoBlue border-t-transparent rounded-full animate-spin" />
-      </div>
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#0033A0" />
+      </View>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <ScrollView contentContainerStyle={styles.container}>
       {/* Header */}
-      <header className="px-4 lg:px-6 h-14 flex items-center border-b bg-white shadow">
-        <Link to="/home" className="flex items-center hover:text-momoBlue">
-          <img
-            src="/momobank.png"
-            alt="Logo"
-            className="h-15 w-20 mr-2"
-          />
-          <span className="font-extrabold md:text-xl text-[14px] text-momoBlue">Mo Pocket</span>
-        </Link>
-      </header>
+      <View style={styles.header}>
+        <Image
+          source={require("../../assets/images/default_cooperative.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <Text style={styles.headerText}>Mo Pocket</Text>
+      </View>
 
-      {/* Main Body */}
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-white to-momoYellow px-4">
-        <Tabs
-          value={activeTab}
-          defaultValue="signin"
-          onValueChange={handleTabChange}
-          className="w-full max-w-sm"
+      {/* Tabs */}
+      <View style={styles.tabs}>
+        <TouchableOpacity
+          style={[
+            styles.tab,
+            activeTab === "signin" && styles.activeTab,
+          ]}
+          onPress={() => setActiveTab("signin")}
         >
-          <TabsList className="grid w-full grid-cols-2 rounded-full p-1 bg-gray-200 mb-4">
-            <TabsTrigger
-              value="signin"
-              className="data-[state=active]:bg-momoBlue data-[state=active]:text-white rounded-full"
-            >
-              Login
-            </TabsTrigger>
-            <TabsTrigger
-              value="signup"
-              className="data-[state=active]:bg-momoBlue data-[state=active]:text-white rounded-full"
-            >
-              Signup
-            </TabsTrigger>
-          </TabsList>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "signin" && styles.activeTabText,
+            ]}
+          >
+            Login
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.tab,
+            activeTab === "signup" && styles.activeTab,
+          ]}
+          onPress={() => setActiveTab("signup")}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "signup" && styles.activeTabText,
+            ]}
+          >
+            Signup
+          </Text>
+        </TouchableOpacity>
+      </View>
 
-          {/* Sign In Form */}
-          <TabsContent value="signin">
-            <Card className="p-6 space-y-4 bg-white rounded-2xl shadow-xl">
-              <CardHeader>
-                <CardTitle className="text-center text-2xl font-bold text-momoBlue">Login</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <CommonForm
-                  formControls={signInFormControls}
-                  buttonText={"Login"}
-                  formData={signInFormData}
-                  setFormData={setSignInFormData}
-                  isButtonDisabled={!checkIfSignInFormIsValid()}
-                  handleSubmit={handleLoginUser}
-                />
+      {/* Form Card */}
+      <View style={styles.card}>
+        <Text style={styles.title}>
+          {activeTab === "signin" ? "Login" : "Signup"}
+        </Text>
 
-                <div className="text-center text-sm mt-2">
-                  Not a member?{" "}
-                  <span
-                    onClick={() => setActiveTab("signup")}
-                    className="text-momoBlue hover:underline cursor-pointer"
-                  >
-                    Signup now
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+        <CommonForm
+          formControls={
+            activeTab === "signin" ? signInFormControls : signUpFormControls
+          }
+          buttonText={activeTab === "signin" ? "Login" : "Signup"}
+          formData={activeTab === "signin" ? signInFormData : signUpFormData}
+          setFormData={
+            activeTab === "signin" ? setSignInFormData : setSignUpFormData
+          }
+          isButtonDisabled={
+            activeTab === "signin" ? !isSignInValid : !isSignUpValid
+          }
+          handleSubmit={
+            activeTab === "signin" ? handleLoginUser : handleRegisterUser
+          }
+        />
 
-          {/* Sign Up Form */}
-          <TabsContent value="signup">
-            <Card className="p-6 space-y-4 bg-white rounded-2xl shadow-xl">
-              <CardHeader>
-                <CardTitle className="text-center text-2xl font-bold text-momoBlue">Signup</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <CommonForm
-                  formControls={signUpFormControls}
-                  buttonText={"Signup"}
-                  formData={signUpFormData}
-                  setFormData={setSignUpFormData}
-                  isButtonDisabled={!checkIfSignUpFormIsValid()}
-                  handleSubmit={handleRegisterUser}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div>
+        {activeTab === "signin" && (
+          <TouchableOpacity onPress={() => setActiveTab("signup")}>
+            <Text style={styles.switchText}>
+              Not a member?{" "}
+              <Text style={styles.link}>Signup now</Text>
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </ScrollView>
   );
 }
 
-export default AuthPage;
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+    backgroundColor: "#FCEB89",
+    flexGrow: 1,
+    alignItems: "center",
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 30,
+    backgroundColor: "#ffffff",
+    padding: 10,
+    borderRadius: 10,
+    elevation: 4,
+  },
+  logo: {
+    width: 60,
+    height: 40,
+    marginRight: 10,
+  },
+  headerText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#0033A0",
+  },
+  tabs: {
+    flexDirection: "row",
+    backgroundColor: "#e0e0e0",
+    borderRadius: 30,
+    marginBottom: 20,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: "center",
+    borderRadius: 30,
+  },
+  activeTab: {
+    backgroundColor: "#0033A0",
+  },
+  tabText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  activeTabText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  card: {
+    width: "100%",
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 20,
+    elevation: 5,
+  },
+  title: {
+    fontSize: 22,
+    textAlign: "center",
+    color: "#0033A0",
+    marginBottom: 20,
+    fontWeight: "bold",
+  },
+  switchText: {
+    textAlign: "center",
+    marginTop: 10,
+    fontSize: 14,
+  },
+  link: {
+    color: "#0033A0",
+    fontWeight: "bold",
+  },
+});

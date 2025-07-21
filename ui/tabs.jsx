@@ -1,54 +1,42 @@
-import * as React from "react"
-import PropTypes from "prop-types"
-import * as TabsPrimitive from "@radix-ui/react-tabs"
+import * as React from 'react';
+import { View, useWindowDimensions, Text } from 'react-native';
+import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 
-import { cn } from "@/lib/utils"
+const FirstRoute = () => (
+  <View style={{ flex: 1, backgroundColor: '#ff4081' }}>
+    <Text>First Tab</Text>
+  </View>
+);
 
-const Tabs = TabsPrimitive.Root
+const SecondRoute = () => (
+  <View style={{ flex: 1, backgroundColor: '#673ab7' }}>
+    <Text>Second Tab</Text>
+  </View>
+);
 
-const TabsList = React.forwardRef(({ className, ...props }, ref) => (
-  <TabsPrimitive.List
-    ref={ref}
-    className={cn(
-      "inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground",
-      className
-    )}
-    {...props}
-  />
-))
-TabsList.displayName = TabsPrimitive.List.displayName
-TabsList.propTypes = {
-  className: PropTypes.string,
+export default function MyTabs() {
+  const layout = useWindowDimensions();
+
+  const [index, setIndex] = React.useState(0);
+  const [routes] = React.useState([
+    { key: 'first', title: 'First' },
+    { key: 'second', title: 'Second' },
+  ]);
+
+  const renderScene = SceneMap({
+    first: FirstRoute,
+    second: SecondRoute,
+  });
+
+  return (
+    <TabView
+      navigationState={{ index, routes }}
+      renderScene={renderScene}
+      onIndexChange={setIndex}
+      initialLayout={{ width: layout.width }}
+      renderTabBar={props => (
+        <TabBar {...props} style={{ backgroundColor: '#fff' }} labelStyle={{ color: 'black' }} />
+      )}
+    />
+  );
 }
-
-const TabsTrigger = React.forwardRef(({ className, ...props }, ref) => (
-  <TabsPrimitive.Trigger
-    ref={ref}
-    className={cn(
-      "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow",
-      className
-    )}
-    {...props}
-  />
-))
-TabsTrigger.displayName = TabsPrimitive.Trigger.displayName
-TabsTrigger.propTypes = {
-  className: PropTypes.string,
-}
-
-const TabsContent = React.forwardRef(({ className, ...props }, ref) => (
-  <TabsPrimitive.Content
-    ref={ref}
-    className={cn(
-      "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-      className
-    )}
-    {...props}
-  />
-))
-TabsContent.displayName = TabsPrimitive.Content.displayName
-TabsContent.propTypes = {
-  className: PropTypes.string,
-}
-
-export { Tabs, TabsList, TabsTrigger, TabsContent }

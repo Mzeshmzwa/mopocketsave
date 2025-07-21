@@ -1,25 +1,11 @@
-import StudentViewCommonHeader from "@/components/user-view/header";
 import { useEffect, useState } from "react";
-import axiosInstance from "@/api/axiosInstance";
-import { useNavigate } from "react-router-dom";
-
-import {
-  FaWallet,
-  FaArrowDown,
-  FaArrowUp,
-  FaExchangeAlt,
-  FaTachometerAlt,
-  FaExclamationTriangle,
-  FaLock,
-  FaSpinner,
-  FaInfoCircle,
-  FaClock,
-  FaMoneyBillWave,
-  FaCheckCircle,
-  FaTimesCircle,
-  FaEye,
-  FaChartLine,
-} from "react-icons/fa";
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { router } from "expo-router";
+import axiosInstance from "../../api/axiosInstance";
+import { 
+  FontAwesome,
+  FontAwesome5 
+} from '@expo/vector-icons';
 
 export default function HomePage() {
   const [user, setUser] = useState(null);
@@ -28,7 +14,6 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("dashboard");
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -37,7 +22,7 @@ export default function HomePage() {
         const id = localStorage.getItem("userId");
         if (!id) {
           setError("No user ID found. Please log in again.");
-          navigate("/auth");
+          router.push("/auth");
           return;
         }
 
@@ -69,7 +54,7 @@ export default function HomePage() {
     };
 
     fetchUserData();
-  }, [navigate]);
+  }, []);
 
   const goToDeposit = async () => {
     try {
@@ -77,14 +62,14 @@ export default function HomePage() {
       if (res.data.data?.access_token) {
         localStorage.setItem("momoToken", res.data.data.access_token);
       }
-      navigate("/deposit");
+      router.push("/deposit");
     } catch (err) {
       console.error("Failed to generate MoMo token:", err);
       setError("Failed to generate payment token. Please try again.");
     }
   };
 
-  const goToWithdraw = () => navigate("/withdraw");
+  const goToWithdraw = () => router.push("/withdraw");
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -104,10 +89,10 @@ export default function HomePage() {
 
   const getTransactionIcon = (type) => {
     switch (type) {
-      case 'deposit': return <FaArrowUp className="text-green-600" />;
-      case 'withdrawal': return <FaArrowDown className="text-blue-600" />;
-      case 'penalty': return <FaExclamationTriangle className="text-red-600" />;
-      default: return <FaExchangeAlt className="text-gray-600" />;
+      case 'deposit': return <FontAwesome name="arrow-up" size={24} color="#16a34a" />;
+      case 'withdrawal': return <FontAwesome name="arrow-down" size={24} color="#2563eb" />;
+      case 'penalty': return <FontAwesome name="exclamation-triangle" size={24} color="#dc2626" />;
+      default: return <FontAwesome name="exchange" size={24} color="#4b5563" />;
     }
   };
 
@@ -207,435 +192,564 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <FaSpinner className="animate-spin text-4xl text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading your vault...</p>
-        </div>
-      </div>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f9fafb' }}>
+        <ActivityIndicator size="large" color="#0066cc" />
+        <Text style={{ marginTop: 12, color: '#4b5563' }}>Loading your vault...</Text>
+      </View>
     );
   }
 
   return (
     <>
-      <StudentViewCommonHeader />
-      <div className="flex min-h-screen bg-gray-50 text-gray-800">
+   
+      <View style={{ flex: 1, flexDirection: 'column', backgroundColor: '#f9fafb' }}>
         {/* Sidebar */}
-        <aside className="w-64 bg-momoBlue text-white p-6 space-y-6 hidden md:block">
-          <div className="flex items-center gap-2 text-2xl font-bold text-momoYellow">
-            <FaWallet />
+        <View style={{ width: 256, backgroundColor: '#1e3a8a', padding: 24, paddingTop: 48, position: 'relative' }}>
+          <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fbbf24', marginBottom: 32, flexDirection: 'row', alignItems: 'center' }}>
+            <FontAwesome name="wallet" size={28} color="#fbbf24" style={{ marginRight: 8 }} />
             Mo Pocket
-          </div>
-          <nav className="space-y-2">
+          </Text>
+          <View style={{ marginBottom: 32 }}>
             {[
-              { id: 'dashboard', icon: FaTachometerAlt, label: 'Dashboard' },
-              { id: 'deposits', icon: FaLock, label: 'My Deposits' },
-              { id: 'transactions', icon: FaExchangeAlt, label: 'Transactions' },
-              { id: 'withdrawals', icon: FaArrowDown, label: 'Withdrawals' },
-            ].map(({ id, icon: Icon, label }) => (
-              <button
+              { id: 'dashboard', icon: 'tachometer', label: 'Dashboard' },
+              { id: 'deposits', icon: 'lock', label: 'My Deposits' },
+              { id: 'transactions', icon: 'exchange', label: 'Transactions' },
+              { id: 'withdrawals', icon: 'arrow-down', label: 'Withdrawals' },
+            ].map(({ id, icon, label }) => (
+              <TouchableOpacity
                 key={id}
-                onClick={() => setActiveTab(id)}
-                className={`w-full flex items-center gap-2 p-3 rounded-lg transition-colors ${
-                  activeTab === id
-                    ? 'bg-white/20 text-momoYellow font-semibold'
-                    : 'hover:bg-white/10 hover:text-momoYellow'
-                }`}
+                onPress={() => setActiveTab(id)}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  padding: 12,
+                  borderRadius: 8,
+                  marginBottom: 8,
+                  backgroundColor: activeTab === id ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
+                }}
               >
-                <Icon />
-                {label}
-              </button>
+                <FontAwesome5 name={icon} size={18} color={activeTab === id ? '#fbbf24' : '#e5e7eb'} style={{ marginRight: 12 }} />
+                <Text style={{ color: activeTab === id ? '#fbbf24' : '#e5e7eb', fontWeight: activeTab === id ? '600' : '400' }}>
+                  {label}
+                </Text>
+              </TouchableOpacity>
             ))}
-          </nav>
-        </aside>
+          </View>
+          <View style={{ position: 'absolute', bottom: 24, left: 24, right: 24 }}>
+            <Text style={{ color: '#e5e7eb', fontSize: 12, marginBottom: 8 }}>Version 1.0.0</Text>
+            <TouchableOpacity
+              onPress={() => router.push('/settings')}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                padding: 12,
+                borderRadius: 8,
+                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+              }}
+            >
+              <FontAwesome name="cog" size={18} color="#fbbf24" style={{ marginRight: 12 }} />
+              <Text style={{ color: '#fbbf24', fontWeight: '500' }}>
+                Settings
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 md:p-8 space-y-6">
+        <View style={{ flex: 1, padding: 16 }}>
           {/* Header Actions */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">
-                Welcome back, {user?.userName || 'User'}!
-              </h1>
-              <p className="text-gray-600">Manage your vault and track your savings</p>
-              {user?.phoneNumber && (
-                <p className="text-sm text-gray-500">Phone: {user.phoneNumber}</p>
-              )}
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={goToDeposit}
-                className="bg-momoYellow text-momoBlue font-semibold px-4 py-2 rounded-lg hover:brightness-110 flex items-center gap-2 transition-all"
-              >
-                <FaArrowUp />
+          <View style={{ flexDirection: 'column', marginBottom: 24 }}>
+            <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#111827', marginBottom: 8 }}>
+              Welcome back, {user?.userName || 'User'}!
+            </Text>
+            <Text style={{ color: '#6b7280', marginBottom: 4 }}>
+              Manage your vault and track your savings
+            </Text>
+            {user?.phoneNumber && (
+              <Text style={{ fontSize: 12, color: '#6b7280' }}>
+                Phone: {user.phoneNumber}
+              </Text>
+            )}
+          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 }}>
+            <TouchableOpacity
+              onPress={goToDeposit}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: '#fbbf24',
+                paddingVertical: 12,
+                paddingHorizontal: 16,
+                borderRadius: 8,
+                elevation: 2,
+                flex: 1,
+                marginRight: 8
+              }}
+            >
+              <FontAwesome5 name="arrow-up" size={18} color="#1e3a8a" style={{ marginRight: 8 }} />
+              <Text style={{ color: '#1e3a8a', fontWeight: '500' }}>
                 Deposit
-              </button>
-              <button
-                onClick={goToWithdraw}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center gap-2 transition-all"
-              >
-                <FaArrowDown />
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={goToWithdraw}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: '#dc2626',
+                paddingVertical: 12,
+                paddingHorizontal: 16,
+                borderRadius: 8,
+                elevation: 2,
+                flex: 1
+              }}
+            >
+              <FontAwesome5 name="arrow-down" size={18} color="#ffffff" style={{ marginRight: 8 }} />
+              <Text style={{ color: '#ffffff', fontWeight: '500' }}>
                 Withdraw
-              </button>
-            </div>
-          </div>
+              </Text>
+            </TouchableOpacity>
+          </View>
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
-              <FaTimesCircle />
-              {error}
-            </div>
+            <View style={{ backgroundColor: '#fee2e2', borderColor: '#fca5a5', borderWidth: 1, borderRadius: 8, padding: 16, marginBottom: 24, flexDirection: 'row', alignItems: 'center' }}>
+              <FontAwesome name="times-circle" size={20} color="#dc2626" style={{ marginRight: 12 }} />
+              <Text style={{ color: '#dc2626' }}>
+                {error}
+              </Text>
+            </View>
           )}
 
           {/* Dashboard Tab */}
           {activeTab === 'dashboard' && (
             <>
               {/* Stats Cards */}
-              <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white shadow-lg rounded-lg p-6 border-l-4 border-blue-500 hover:shadow-xl transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm text-gray-500 font-medium">Total Deposited</h3>
-                      <p className="text-2xl font-bold text-blue-600">
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 24 }}>
+                <View style={{ backgroundColor: '#ffffff', borderRadius: 8, padding: 16, flex: 1, marginRight: 8, marginBottom: 8, elevation: 2 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <View>
+                      <Text style={{ fontSize: 12, color: '#6b7280', marginBottom: 4 }}>
+                        Total Deposited
+                      </Text>
+                      <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#2563eb' }}>
                         {formatCurrency(stats?.totalDeposited)}
-                      </p>
-                      <p className="text-xs text-gray-400">{stats?.depositTransactionsCount || 0} deposits</p>
-                    </div>
-                    <FaChartLine className="text-3xl text-blue-500" />
-                  </div>
-                </div>
+                      </Text>
+                      <Text style={{ fontSize: 10, color: '#9ca3af' }}>
+                        {stats?.depositTransactionsCount || 0} deposits
+                      </Text>
+                    </View>
+                    <FontAwesome5 name="chart-line" size={28} color="#2563eb" />
+                  </View>
+                </View>
 
-                <div className="bg-white shadow-lg rounded-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm text-gray-500 font-medium">Available to Withdraw</h3>
-                      <p className="text-2xl font-bold text-green-600">
+                <View style={{ backgroundColor: '#ffffff', borderRadius: 8, padding: 16, flex: 1, marginRight: 8, marginBottom: 8, elevation: 2 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <View>
+                      <Text style={{ fontSize: 12, color: '#6b7280', marginBottom: 4 }}>
+                        Available to Withdraw
+                      </Text>
+                      <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#16a34a' }}>
                         {formatCurrency(stats?.withdrawableAmount)}
-                      </p>
-                      <p className="text-xs text-gray-400">After fees & penalties</p>
-                    </div>
-                    <FaMoneyBillWave className="text-3xl text-green-500" />
-                  </div>
-                </div>
+                      </Text>
+                      <Text style={{ fontSize: 10, color: '#9ca3af' }}>
+                        After fees & penalties
+                      </Text>
+                    </View>
+                    <FontAwesome5 name="money-bill-wave" size={28} color="#16a34a" />
+                  </View>
+                </View>
 
-                <div className="bg-white shadow-lg rounded-lg p-6 border-l-4 border-yellow-500 hover:shadow-xl transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm text-gray-500 font-medium">Active Deposits</h3>
-                      <p className="text-2xl font-bold text-yellow-600">
+                <View style={{ backgroundColor: '#ffffff', borderRadius: 8, padding: 16, flex: 1, marginRight: 8, marginBottom: 8, elevation: 2 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <View>
+                      <Text style={{ fontSize: 12, color: '#6b7280', marginBottom: 4 }}>
+                        Active Deposits
+                      </Text>
+                      <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#ca8a04' }}>
                         {stats?.activeDepositsCount || 0}
-                      </p>
-                      <p className="text-xs text-gray-400">{formatCurrency(stats?.totalLockedAmount)} locked</p>
-                    </div>
-                    <FaLock className="text-3xl text-yellow-500" />
-                  </div>
-                </div>
+                      </Text>
+                      <Text style={{ fontSize: 10, color: '#9ca3af' }}>
+                        {formatCurrency(stats?.totalLockedAmount)} locked
+                      </Text>
+                    </View>
+                    <FontAwesome name="lock" size={28} color="#ca8a04" />
+                  </View>
+                </View>
 
-                <div className="bg-white shadow-lg rounded-lg p-6 border-l-4 border-red-500 hover:shadow-xl transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm text-gray-500 font-medium">Total Fees Paid</h3>
-                      <p className="text-2xl font-bold text-red-600">
+                <View style={{ backgroundColor: '#ffffff', borderRadius: 8, padding: 16, flex: 1, marginBottom: 8, elevation: 2 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <View>
+                      <Text style={{ fontSize: 12, color: '#6b7280', marginBottom: 4 }}>
+                        Total Fees Paid
+                      </Text>
+                      <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#dc2626' }}>
                         {formatCurrency(stats?.totalPenalties)}
-                      </p>
-                      <p className="text-xs text-gray-400">{stats?.penaltyTransactionsCount || 0} penalty transactions</p>
-                    </div>
-                    <FaExclamationTriangle className="text-3xl text-red-500" />
-                  </div>
-                </div>
-              </section>
+                      </Text>
+                      <Text style={{ fontSize: 10, color: '#9ca3af' }}>
+                        {stats?.penaltyTransactionsCount || 0} penalty transactions
+                      </Text>
+                    </View>
+                    <FontAwesome name="exclamation-triangle" size={28} color="#dc2626" />
+                  </View>
+                </View>
+              </View>
 
               {/* Quick Summary */}
-              <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <View style={{ flexDirection: 'column', marginBottom: 24 }}>
                 {/* Account Summary */}
-                <div className="bg-white shadow-lg rounded-lg p-6">
-                  <h3 className="font-semibold text-lg text-momoBlue mb-4 flex items-center gap-2">
-                    <FaWallet />
+                <View style={{ backgroundColor: '#ffffff', borderRadius: 8, padding: 16, marginBottom: 24, elevation: 2 }}>
+                  <Text style={{ fontSize: 16, fontWeight: '500', color: '#1e3a8a', marginBottom: 16 }}>
                     Account Summary
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                      <span className="text-gray-600">Total Deposits Made:</span>
-                      <span className="font-semibold">{stats?.depositTransactionsCount || 0}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                      <span className="text-gray-600">Total Withdrawals:</span>
-                      <span className="font-semibold">{stats?.withdrawalTransactionsCount || 0}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                      <span className="text-gray-600">Net Position:</span>
-                      <span className="font-semibold text-blue-600">
+                  </Text>
+                  <View style={{ borderTopWidth: 1, borderTopColor: '#f3f4f6', paddingTop: 16 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' }}>
+                      <Text style={{ color: '#6b7280' }}>Total Deposits Made:</Text>
+                      <Text style={{ fontWeight: '500' }}>{stats?.depositTransactionsCount || 0}</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' }}>
+                      <Text style={{ color: '#6b7280' }}>Total Withdrawals:</Text>
+                      <Text style={{ fontWeight: '500' }}>{stats?.withdrawalTransactionsCount || 0}</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' }}>
+                      <Text style={{ color: '#6b7280' }}>Net Position:</Text>
+                      <Text style={{ fontWeight: '500', color: '#2563eb' }}>
                         {formatCurrency((stats?.totalDeposited || 0) - (stats?.totalWithdrawn || 0))}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-gray-600">Vault Balance:</span>
-                      <span className="font-semibold text-green-600">
+                      </Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12 }}>
+                      <Text style={{ color: '#6b7280' }}>Vault Balance:</Text>
+                      <Text style={{ fontWeight: '500', color: '#16a34a' }}>
                         {formatCurrency(stats?.vaultBalance)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                      </Text>
+                    </View>
+                  </View>
+                </View>
 
                 {/* Withdrawal Rules */}
-                <div className="bg-white shadow-lg rounded-lg p-6">
-                  <h3 className="font-semibold text-lg text-momoBlue mb-4 flex items-center gap-2">
-                    <FaInfoCircle />
+                <View style={{ backgroundColor: '#ffffff', borderRadius: 8, padding: 16, elevation: 2 }}>
+                  <Text style={{ fontSize: 16, fontWeight: '500', color: '#1e3a8a', marginBottom: 16 }}>
                     Withdrawal Rules
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="border-2 border-yellow-300 bg-yellow-50 rounded-lg p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FaExclamationTriangle className="text-yellow-600" />
-                        <span className="font-semibold">Early Withdrawal</span>
-                      </div>
-                      <p className="text-sm text-gray-600">10% penalty + E5 fee if withdrawn before maturity</p>
-                    </div>
-                    <div className="border-2 border-green-300 bg-green-50 rounded-lg p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FaCheckCircle className="text-green-600" />
-                        <span className="font-semibold">Matured Withdrawal</span>
-                      </div>
-                      <p className="text-sm text-gray-600">Only E5 flat fee (no penalty) after lock period</p>
-                    </div>
-                    <div className="border-2 border-blue-300 bg-blue-50 rounded-lg p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FaClock className="text-blue-600" />
-                        <span className="font-semibold">Immediate Access</span>
-                      </div>
-                      <p className="text-sm text-gray-600">No waiting period - withdraw anytime</p>
-                    </div>
-                  </div>
-                </div>
-              </section>
+                  </Text>
+                  <View style={{ borderTopWidth: 1, borderTopColor: '#f3f4f6', paddingTop: 16 }}>
+                    <View style={{ borderWidth: 2, borderColor: '#fbbf24', borderRadius: 8, padding: 16, marginBottom: 16 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                        <FontAwesome name="exclamation-triangle" size={20} color="#fbbf24" style={{ marginRight: 8 }} />
+                        <Text style={{ fontWeight: '500', color: '#fbbf24' }}>
+                          Early Withdrawal
+                        </Text>
+                      </View>
+                      <Text style={{ color: '#6b7280', fontSize: 14 }}>
+                        10% penalty + E5 fee if withdrawn before maturity
+                      </Text>
+                    </View>
+                    <View style={{ borderWidth: 2, borderColor: '#4ade80', borderRadius: 8, padding: 16, marginBottom: 16 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                        <FontAwesome name="check-circle" size={20} color="#4ade80" style={{ marginRight: 8 }} />
+                        <Text style={{ fontWeight: '500', color: '#4ade80' }}>
+                          Matured Withdrawal
+                        </Text>
+                      </View>
+                      <Text style={{ color: '#6b7280', fontSize: 14 }}>
+                        Only E5 flat fee (no penalty) after lock period
+                      </Text>
+                    </View>
+                    <View style={{ borderWidth: 2, borderColor: '#60a5fa', borderRadius: 8, padding: 16 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                        <FontAwesome name="clock" size={20} color="#60a5fa" style={{ marginRight: 8 }} />
+                        <Text style={{ fontWeight: '500', color: '#60a5fa' }}>
+                          Immediate Access
+                        </Text>
+                      </View>
+                      <Text style={{ color: '#6b7280', fontSize: 14 }}>
+                        No waiting period - withdraw anytime
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
             </>
           )}
 
           {/* Deposits Tab */}
           {activeTab === 'deposits' && (
-            <section className="bg-white shadow-lg rounded-lg p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-semibold text-lg text-momoBlue">My Locked Deposits</h3>
-                <span className="text-sm text-gray-500">
+            <View style={{ backgroundColor: '#ffffff', borderRadius: 8, padding: 16, elevation: 2, marginBottom: 24 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <Text style={{ fontSize: 18, fontWeight: '500', color: '#1e3a8a' }}>
+                  My Locked Deposits
+                </Text>
+                <Text style={{ fontSize: 12, color: '#6b7280' }}>
                   {stats?.activeDepositsCount || 0} active deposits
-                </span>
-              </div>
+                </Text>
+              </View>
               
               {vaultInfo?.lockedDeposits?.length > 0 ? (
-                <div className="space-y-4">
+                <View style={{ spaceY: 16 }}>
                   {vaultInfo.lockedDeposits.map((deposit, index) => {
                     const statusInfo = getDepositStatusInfo(deposit);
                     const StatusIcon = statusInfo.icon;
                     
                     return (
-                      <div key={deposit._id || index} className={`border rounded-lg p-4 hover:shadow-md transition-all ${statusInfo.bgColor}`}>
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <FaMoneyBillWave className="text-green-600" />
-                              <span className="font-semibold text-lg">{formatCurrency(deposit.amount)}</span>
-                              <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                                {deposit.lockPeriodInDays} day{deposit.lockPeriodInDays !== 1 ? 's' : ''} lock
-                              </span>
-                            </div>
-                            <div className="text-sm text-gray-600 space-y-1">
-                              <p><strong>Deposited:</strong> {formatDate(deposit.createdAt)}</p>
-                              <p><strong>Matures:</strong> {formatDate(deposit.endDate)}</p>
-                              {statusInfo.penalty > 0 && (
-                                <p className="text-red-600">
-                                  <strong>Early withdrawal penalty:</strong> {formatCurrency(statusInfo.penalty)}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className={`flex items-center gap-1 ${statusInfo.color} font-semibold mb-2`}>
-                              <StatusIcon />
-                              <span className="text-sm">{statusInfo.status}</span>
-                            </div>
-                            <span className={`text-xs px-2 py-1 rounded-full ${
-                              deposit.status === 'locked' ? 'bg-yellow-200 text-yellow-800' : 
-                              deposit.status === 'withdrawn-early' ? 'bg-red-200 text-red-800' :
-                              'bg-gray-200 text-gray-800'
-                            }`}>
-                              {deposit.status.replace('-', ' ')}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
+                      <View key={deposit._id || index} style={{ borderRadius: 8, padding: 16, backgroundColor: statusInfo.bgColor, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', elevation: 1 }}>
+                        <View style={{ flex: 1, marginRight: 16 }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                            <FontAwesome5 name="money-bill-wave" size={24} color="#16a34a" style={{ marginRight: 8 }} />
+                            <Text style={{ fontSize: 18, fontWeight: '500', color: '#111827' }}>
+                              {formatCurrency(deposit.amount)}
+                            </Text>
+                            <Text style={{ fontSize: 12, color: '#6b7280', marginLeft: 8, backgroundColor: '#f3f4f6', borderRadius: 12, paddingVertical: 4, paddingHorizontal: 8 }}>
+                              {deposit.lockPeriodInDays} day{deposit.lockPeriodInDays !== 1 ? 's' : ''} lock
+                            </Text>
+                          </View>
+                          <View style={{ flexDirection: 'column', marginTop: 8 }}>
+                            <Text style={{ fontSize: 12, color: '#6b7280' }}>
+                              <Text style={{ fontWeight: '500' }}>Deposited:</Text> {formatDate(deposit.createdAt)}
+                            </Text>
+                            <Text style={{ fontSize: 12, color: '#6b7280' }}>
+                              <Text style={{ fontWeight: '500' }}>Matures:</Text> {formatDate(deposit.endDate)}
+                            </Text>
+                            {statusInfo.penalty > 0 && (
+                              <Text style={{ fontSize: 12, color: '#dc2626', marginTop: 4 }}>
+                                <Text style={{ fontWeight: '500' }}>Early withdrawal penalty:</Text> {formatCurrency(statusInfo.penalty)}
+                              </Text>
+                            )}
+                          </View>
+                        </View>
+                        <View style={{ alignItems: 'flex-end' }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                            <StatusIcon size={20} color={statusInfo.color} style={{ marginRight: 4 }} />
+                            <Text style={{ fontSize: 14, fontWeight: '500', color: statusInfo.color }}>
+                              {statusInfo.status}
+                            </Text>
+                          </View>
+                          <Text style={{ fontSize: 12, paddingVertical: 4, paddingHorizontal: 8, borderRadius: 16, backgroundColor: deposit.status === 'locked' ? '#fef9c3' : deposit.status === 'withdrawn-early' ? '#fee2e2' : '#e5e7eb', color: deposit.status === 'locked' ? '#856404' : deposit.status === 'withdrawn-early' ? '#dc2626' : '#374151' }}>
+                            {deposit.status.replace('-', ' ')}
+                          </Text>
+                        </View>
+                      </View>
                     );
                   })}
-                </div>
+                </View>
               ) : (
-                <div className="text-center py-12 text-gray-500">
-                  <FaLock className="text-6xl mx-auto mb-4 opacity-30" />
-                  <h4 className="text-lg font-semibold mb-2">No deposits found</h4>
-                  <p className="mb-4">Start saving today and watch your money grow!</p>
-                  <button
-                    onClick={goToDeposit}
-                    className="bg-momoYellow text-momoBlue px-6 py-3 rounded-lg hover:brightness-110 font-semibold transition-all"
+                <View style={{ alignItems: 'center', paddingVertical: 48 }}>
+                  <FontAwesome name="lock" size={64} color="#d1d5db" style={{ marginBottom: 16 }} />
+                  <Text style={{ fontSize: 18, fontWeight: '500', color: '#111827', marginBottom: 8 }}>
+                    No deposits found
+                  </Text>
+                  <Text style={{ color: '#6b7280', marginBottom: 16, textAlign: 'center' }}>
+                    Start saving today and watch your money grow!
+                  </Text>
+                  <TouchableOpacity
+                    onPress={goToDeposit}
+                    style={{
+                      backgroundColor: '#fbbf24',
+                      paddingVertical: 12,
+                      paddingHorizontal: 24,
+                      borderRadius: 8,
+                      elevation: 2,
+                      flexDirection: 'row',
+                      alignItems: 'center'
+                    }}
                   >
-                    Make Your First Deposit
-                  </button>
-                </div>
+                    <FontAwesome5 name="arrow-up" size={18} color="#1e3a8a" style={{ marginRight: 8 }} />
+                    <Text style={{ color: '#1e3a8a', fontWeight: '500' }}>
+                      Make Your First Deposit
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               )}
-            </section>
+            </View>
           )}
 
           {/* Transactions Tab */}
           {activeTab === 'transactions' && (
-            <section className="bg-white shadow-lg rounded-lg p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-semibold text-lg text-momoBlue">Transaction History</h3>
-                <span className="text-sm text-gray-500">
+            <View style={{ backgroundColor: '#ffffff', borderRadius: 8, padding: 16, elevation: 2, marginBottom: 24 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <Text style={{ fontSize: 18, fontWeight: '500', color: '#1e3a8a' }}>
+                  Transaction History
+                </Text>
+                <Text style={{ fontSize: 12, color: '#6b7280' }}>
                   {stats?.totalTransactions || 0} total transactions
-                </span>
-              </div>
+                </Text>
+              </View>
               
               {vaultInfo?.recentTransactions?.length > 0 ? (
-                <div className="space-y-3">
+                <View style={{ spaceY: 12 }}>
                   {vaultInfo.recentTransactions.map((transaction, index) => (
-                    <div key={transaction._id || index} className={`border-l-4 p-4 rounded-lg ${getTransactionColor(transaction.type)} hover:shadow-md transition-shadow`}>
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-3">
-                          {getTransactionIcon(transaction.type)}
-                          <div>
-                            <p className="font-semibold capitalize">{transaction.type}</p>
-                            <p className="text-sm text-gray-600">{formatDate(transaction.createdAt)}</p>
-                            {transaction.momoTransactionId && (
-                              <p className="text-xs text-gray-500 font-mono">
-                                Ref: {transaction.momoTransactionId.substring(0, 12)}...
-                              </p>
-                            )}
-                            {transaction.lockPeriodInDays && (
-                              <p className="text-xs text-gray-500">
-                                Lock period: {transaction.lockPeriodInDays} days
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className={`font-semibold text-lg ${
-                            transaction.type === 'deposit' ? 'text-green-600' : 
-                            transaction.type === 'withdrawal' ? 'text-blue-600' : 'text-red-600'
-                          }`}>
-                            {transaction.type === 'deposit' ? '+' : '-'}{formatCurrency(transaction.amount)}
-                          </p>
-                          {transaction.penaltyFee > 0 && (
-                            <p className="text-xs text-red-600">
-                              Fee: {formatCurrency(transaction.penaltyFee)}
-                            </p>
+                    <View key={transaction._id || index} style={{ borderLeftWidth: 4, borderLeftColor: getTransactionColor(transaction.type), backgroundColor: 'white', borderRadius: 8, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', elevation: 1 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        {getTransactionIcon(transaction.type)}
+                        <View style={{ marginLeft: 12 }}>
+                          <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827', textTransform: 'capitalize' }}>
+                            {transaction.type}
+                          </Text>
+                          <Text style={{ fontSize: 12, color: '#6b7280' }}>
+                            {formatDate(transaction.createdAt)}
+                          </Text>
+                          {transaction.momoTransactionId && (
+                            <Text style={{ fontSize: 10, color: '#6b7280', fontFamily: 'monospace' }}>
+                              Ref: {transaction.momoTransactionId.substring(0, 12)}...
+                            </Text>
                           )}
-                        </div>
-                      </div>
-                    </div>
+                          {transaction.lockPeriodInDays && (
+                            <Text style={{ fontSize: 10, color: '#6b7280' }}>
+                              Lock period: {transaction.lockPeriodInDays} days
+                            </Text>
+                          )}
+                        </View>
+                      </View>
+                      <View style={{ alignItems: 'flex-end' }}>
+                        <Text style={{ fontSize: 18, fontWeight: '500', color: transaction.type === 'deposit' ? '#16a34a' : transaction.type === 'withdrawal' ? '#2563eb' : '#dc2626' }}>
+                          {transaction.type === 'deposit' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                        </Text>
+                        {transaction.penaltyFee > 0 && (
+                          <Text style={{ fontSize: 10, color: '#dc2626' }}>
+                            Fee: {formatCurrency(transaction.penaltyFee)}
+                          </Text>
+                        )}
+                      </View>
+                    </View>
                   ))}
-                </div>
+                </View>
               ) : (
-                <div className="text-center py-12 text-gray-500">
-                  <FaExchangeAlt className="text-6xl mx-auto mb-4 opacity-30" />
-                  <h4 className="text-lg font-semibold mb-2">No transactions found</h4>
-                  <p>Your transaction history will appear here</p>
-                </div>
+                <View style={{ alignItems: 'center', paddingVertical: 48 }}>
+                  <FontAwesome name="exchange" size={64} color="#d1d5db" style={{ marginBottom: 16 }} />
+                  <Text style={{ fontSize: 18, fontWeight: '500', color: '#111827', marginBottom: 8 }}>
+                    No transactions found
+                  </Text>
+                  <Text style={{ color: '#6b7280', textAlign: 'center' }}>
+                    Your transaction history will appear here
+                  </Text>
+                </View>
               )}
-            </section>
+            </View>
           )}
 
           {/* Withdrawals Tab */}
           {activeTab === 'withdrawals' && (
-            <section className="bg-white shadow-lg rounded-lg p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-semibold text-lg text-momoBlue">Withdrawal History & Options</h3>
-                <button
-                  onClick={goToWithdraw}
-                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center gap-2 transition-all"
+            <View style={{ backgroundColor: '#ffffff', borderRadius: 8, padding: 16, elevation: 2, marginBottom: 24 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <Text style={{ fontSize: 18, fontWeight: '500', color: '#1e3a8a' }}>
+                  Withdrawal History & Options
+                </Text>
+                <TouchableOpacity
+                  onPress={goToWithdraw}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: '#dc2626',
+                    paddingVertical: 12,
+                    paddingHorizontal: 16,
+                    borderRadius: 8,
+                    elevation: 2
+                  }}
                 >
-                  <FaArrowDown />
-                  New Withdrawal
-                </button>
-              </div>
+                  <FontAwesome5 name="arrow-down" size={18} color="#ffffff" style={{ marginRight: 8 }} />
+                  <Text style={{ color: '#ffffff', fontWeight: '500' }}>
+                    New Withdrawal
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
               {/* Withdrawable Deposits Summary */}
               {withdrawableDeposits.length > 0 && (
-                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
-                    <FaEye />
+                <View style={{ marginBottom: 24, padding: 16, borderRadius: 8, backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#60a5fa' }}>
+                  <Text style={{ fontWeight: '500', color: '#1e3a8a', marginBottom: 12, flexDirection: 'row', alignItems: 'center' }}>
+                    <FontAwesome5 name="eye" size={20} color="#60a5fa" style={{ marginRight: 8 }} />
                     Available for Withdrawal
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-600">Deposits available:</span>
-                      <span className="font-semibold ml-2">{withdrawableDeposits.length}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Total amount:</span>
-                      <span className="font-semibold ml-2">
-                        {formatCurrency(withdrawableDeposits.reduce((sum, d) => sum + d.amount, 0))}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Net after fees:</span>
-                      <span className="font-semibold ml-2 text-green-600">
-                        {formatCurrency(withdrawableDeposits.reduce((sum, d) => sum + d.netAmount, 0))}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                  </Text>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <Text style={{ color: '#374151' }}>Deposits available:</Text>
+                    <Text style={{ fontWeight: '500', color: '#111827' }}>
+                      {withdrawableDeposits.length}
+                    </Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <Text style={{ color: '#374151' }}>Total amount:</Text>
+                    <Text style={{ fontWeight: '500', color: '#111827' }}>
+                      {formatCurrency(withdrawableDeposits.reduce((sum, d) => sum + d.amount, 0))}
+                    </Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={{ color: '#374151' }}>Net after fees:</Text>
+                    <Text style={{ fontWeight: '500', color: '#16a34a' }}>
+                      {formatCurrency(withdrawableDeposits.reduce((sum, d) => sum + d.netAmount, 0))}
+                    </Text>
+                  </View>
+                </View>
               )}
 
               {/* Withdrawal History */}
               {vaultInfo?.recentTransactions?.filter(t => t.type === 'withdrawal').length > 0 ? (
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-gray-700 mb-3">Recent Withdrawals</h4>
+                <View style={{ spaceY: 12 }}>
+                  <Text style={{ fontWeight: '500', color: '#111827', marginBottom: 8 }}>
+                    Recent Withdrawals
+                  </Text>
                   {vaultInfo.recentTransactions
                     .filter(t => t.type === 'withdrawal')
                     .map((withdrawal, index) => (
-                      <div key={withdrawal._id || index} className="border-l-4 border-l-blue-500 bg-blue-50 p-4 rounded-lg hover:shadow-md transition-shadow">
-                        <div className="flex justify-between items-start">
-                          <div className="flex items-center gap-3">
-                            <FaArrowDown className="text-blue-600" />
-                            <div>
-                              <p className="font-semibold">Withdrawal</p>
-                              <p className="text-sm text-gray-600">{formatDate(withdrawal.createdAt)}</p>
-                              {withdrawal.momoTransactionId && (
-                                <p className="text-xs text-gray-500 font-mono">
-                                  Ref: {withdrawal.momoTransactionId.substring(0, 12)}...
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-lg text-blue-600">
-                              {formatCurrency(withdrawal.amount)}
-                            </p>
-                            {withdrawal.penaltyFee > 0 && (
-                              <p className="text-xs text-red-600">
-                                Total fees: {formatCurrency(withdrawal.penaltyFee)}
-                              </p>
+                      <View key={withdrawal._id || index} style={{ borderRadius: 8, padding: 16, backgroundColor: '#eff6ff', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', elevation: 1 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          <FontAwesome5 name="arrow-down" size={24} color="#2563eb" style={{ marginRight: 8 }} />
+                          <View>
+                            <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>
+                              Withdrawal
+                            </Text>
+                            <Text style={{ fontSize: 12, color: '#6b7280' }}>
+                              {formatDate(withdrawal.createdAt)}
+                            </Text>
+                            {withdrawal.momoTransactionId && (
+                              <Text style={{ fontSize: 10, color: '#6b7280', fontFamily: 'monospace' }}>
+                                Ref: {withdrawal.momoTransactionId.substring(0, 12)}...
+                              </Text>
                             )}
-                          </div>
-                        </div>
-                      </div>
+                          </View>
+                        </View>
+                        <View style={{ alignItems: 'flex-end' }}>
+                          <Text style={{ fontSize: 18, fontWeight: '500', color: '#2563eb' }}>
+                            {formatCurrency(withdrawal.amount)}
+                          </Text>
+                          {withdrawal.penaltyFee > 0 && (
+                            <Text style={{ fontSize: 10, color: '#dc2626' }}>
+                              Total fees: {formatCurrency(withdrawal.penaltyFee)}
+                            </Text>
+                          )}
+                        </View>
+                      </View>
                     ))}
-                </div>
+                </View>
               ) : (
-                <div className="text-center py-12 text-gray-500">
-                  <FaArrowDown className="text-6xl mx-auto mb-4 opacity-30" />
-                  <h4 className="text-lg font-semibold mb-2">No withdrawals yet</h4>
-                  <p className="mb-4">When you are ready, you can withdraw your deposits</p>
-                  <button
-                    onClick={goToWithdraw}
-                    className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 font-semibold transition-all"
+                <View style={{ alignItems: 'center', paddingVertical: 48 }}>
+                  <FontAwesome5 name="arrow-down" size={64} color="#d1d5db" style={{ marginBottom: 16 }} />
+                  <Text style={{ fontSize: 18, fontWeight: '500', color: '#111827', marginBottom: 8 }}>
+                    No withdrawals yet
+                  </Text>
+                  <Text style={{ color: '#6b7280', marginBottom: 16, textAlign: 'center' }}>
+                    When you are ready, you can withdraw your deposits
+                  </Text>
+                  <TouchableOpacity
+                    onPress={goToWithdraw}
+                    style={{
+                      backgroundColor: '#dc2626',
+                      paddingVertical: 12,
+                      paddingHorizontal: 24,
+                      borderRadius: 8,
+                      elevation: 2,
+                      flexDirection: 'row',
+                      alignItems: 'center'
+                    }}
                   >
-                    Make a Withdrawal
-                  </button>
-                </div>
+                    <FontAwesome5 name="arrow-down" size={18} color="#ffffff" style={{ marginRight: 8 }} />
+                    <Text style={{ color: '#ffffff', fontWeight: '500' }}>
+                      Make a Withdrawal
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               )}
-            </section>
+            </View>
           )}
-        </main>
-      </div>
+        </View>
+      </View>
     </>
   );
 }

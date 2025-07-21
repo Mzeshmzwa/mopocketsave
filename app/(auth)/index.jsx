@@ -1,16 +1,17 @@
+import { View, Text, Image, ActivityIndicator, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Link } from 'expo-router';
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "../../components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
-import CommonForm from "../../components/common-form";
+} from "../../ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/tabs";
+import CommonForm from "../../components/form-controls";
 import { signInFormControls, signUpFormControls } from "../../config";
-import { AuthContext } from "../../context/auth-context";
-
+import { AuthContext } from "../../context/appstate/AuthContext";
 import { useContext, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 
 function AuthPage() {
   const [activeTab, setActiveTab] = useState("signin");
@@ -54,33 +55,33 @@ function AuthPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-white">
-        <div className="w-12 h-12 border-4 border-momoBlue border-t-transparent rounded-full animate-spin" />
-      </div>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0066cc" />
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <SafeAreaView style={styles.container}>
       {/* Header */}
-      <header className="px-4 lg:px-6 h-14 flex items-center border-b bg-white shadow">
-        <Link to="/home" className="flex items-center hover:text-momoBlue">
-          <img
-            src="/momobank.png"
-            alt="Logo"
-            className="h-15 w-20 mr-2"
+      <View style={styles.header}>
+        <Link href="/home" style={styles.headerLink}>
+          <Image
+            source={require("../../assets/images/default_cooperative.png")}
+            style={styles.logo}
           />
-          <span className="font-extrabold md:text-xl text-[14px] text-momoBlue">Mo Pocket</span>
+          <Text style={styles.logoText}>Mo Pocket</Text>
         </Link>
-      </header>
+      </View>
 
       {/* Main Body */}
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-white to-momoYellow px-4">
+      <View style={styles.mainContent}>
         <Tabs
           value={activeTab}
           defaultValue="signin"
           onValueChange={handleTabChange}
-          className="w-full max-w-sm"
+          style={styles.tabsContainer}
         >
           <TabsList className="grid w-full grid-cols-2 rounded-full p-1 bg-gray-200 mb-4">
             <TabsTrigger
@@ -113,15 +114,15 @@ function AuthPage() {
                   handleSubmit={handleLoginUser}
                 />
 
-                <div className="text-center text-sm mt-2">
+                <Text className="text-center text-sm mt-2">
                   Not a member?{" "}
-                  <span
-                    onClick={() => setActiveTab("signup")}
-                    className="text-momoBlue hover:underline cursor-pointer"
+                  <Text
+                    onPress={() => setActiveTab("signup")}
+                    style={styles.signupText}
                   >
                     Signup now
-                  </span>
-                </div>
+                  </Text>
+                </Text>
               </CardContent>
             </Card>
           </TabsContent>
@@ -145,9 +146,58 @@ function AuthPage() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
-    </div>
+      </View>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    color: '#666',
+  },
+  header: {
+    padding: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  headerLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logo: {
+    width: 80,
+    height: 40,
+    resizeMode: 'contain',
+  },
+  logoText: {
+    fontSize: 18,
+    fontFamily: 'Poppins-ExtraBold',
+    color: '#0066cc',
+    marginLeft: 8,
+  },
+  mainContent: {
+    flex: 1,
+    padding: 16,
+  },
+  tabsContainer: {
+    width: '100%',
+    maxWidth: 400,
+    alignSelf: 'center',
+  },
+  signupText: {
+    color: '#0066cc',
+    textDecorationLine: 'underline',
+  },
+});
 
 export default AuthPage;

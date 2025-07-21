@@ -19,6 +19,19 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  // Add form state
+  const [signInFormData, setSignInFormData] = useState({
+    userEmail: "",
+    password: "",
+  });
+
+  const [signUpFormData, setSignUpFormData] = useState({
+    userName: "",
+    userEmail: "",
+    phoneNumber: "",
+    password: "",
+  });
+
   const isAuthenticated = () => {
     return !!user;
   };
@@ -107,6 +120,23 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Add form handlers
+  const handleLoginUser = async () => {
+    try {
+      await login(signInFormData);
+    } catch (error) {
+      console.error("Login error:", error);
+    }
+  };
+
+  const handleRegisterUser = async () => {
+    try {
+      await register(signUpFormData);
+    } catch (error) {
+      console.error("Registration error:", error);
+    }
+  };
+
   useEffect(() => {
     checkAuthStatus();
   }, []);
@@ -118,7 +148,13 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
-    checkAuthStatus
+    checkAuthStatus,
+    signInFormData,
+    setSignInFormData,
+    signUpFormData,
+    setSignUpFormData,
+    handleLoginUser,
+    handleRegisterUser,
   };
 
   return (

@@ -2,35 +2,23 @@ import "react-native-gesture-handler";
 import { useEffect } from "react";
 import { useFonts } from "expo-font";
 import "react-native-url-polyfill/auto";
-import { SplashScreen, Stack } from "expo-router";
+import { SplashScreen, Stack, Redirect } from "expo-router";
+import { AuthProvider, AuthContext } from "../context/appstate/AuthContext";
+import { UserProvider } from "../context/appstate/UserContext";
+import { AdminProvider } from "../context/appstate/AdminContext";
 import { useFrameworkReady } from "../hooks/useFrameworkReady";
 
 import { PaperProvider } from "react-native-paper";
 import theme from "../theme/theme";
 import Toast from "react-native-toast-message";
-import GlobalContextProvider from "../context/GlobalContextProvider";
-import { useFrameworkReady } from "../hooks/useFrameworkReady";
-import { AuthProvider } from "../context/appstate/AuthContext";
-import { UserProvider } from "../context/appstate/UserContext";
-import { AdminProvider } from "../context/appstate/AdminContext";
-
-const GlobalContextProvider = ({ children }) => (
-  <AuthProvider>
-    <UserProvider>
-      <AdminProvider>
-        {children}
-      </AdminProvider>
-    </UserProvider>
-  </AuthProvider>
-);
+import { useContext } from "react";
 
 SplashScreen.preventAutoHideAsync();
 
-const RootLayout = () => {
+const InnerLayout = () => {
+  const { user, isAuthenticated } = useContext(AuthContext);
   useFrameworkReady();
-  
-  useFrameworkReady();
-  
+
   const [fontsLoaded, error] = useFonts({
     "Poppins-Black": require("../assets/fonts/Poppins-Black.ttf"),
     "Poppins-Bold": require("../assets/fonts/Poppins-Bold.ttf"),
@@ -50,26 +38,35 @@ const RootLayout = () => {
     }
   }, [fontsLoaded, error]);
 
-  if (!fontsLoaded) {
-    return null;
-  }
+  if (!fontsLoaded) return null;
 
-  if (!fontsLoaded && !error) {
-    return null;
+  if (!isAuthenticated) {
+    return <Redirect href="/auth" />;
   }
 
   return (
+    <>
+      <Stack initialRouteName="(auth)">
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="+not-found" options={{ headerShown: false }} />
+      </Stack>
+      <Toast />
+    </>
+  );
+};
+
+const RootLayout = () => {
+  return (
     <PaperProvider theme={theme}>
-      <GlobalContextProvider>
-        <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        <Toast />
-      </GlobalContextProvider>
+      <AuthProvider>
+        <UserProvider>
+          <AdminProvider>
+            <InnerLayout />
+          </AdminProvider>
+        </UserProvider>
+      </AuthProvider>
     </PaperProvider>
   );
 };

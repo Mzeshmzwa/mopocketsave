@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
-import axiosInstance from "@/api/axiosInstance";
+import axiosInstance from "../../api/axiosInstance";
 import { 
-  FaMoneyBillWave, 
-  FaLock, 
-  FaRegCreditCard, 
-  FaInfoCircle,
-  FaSpinner,
-  FaCheckCircle,
-  FaExclamationTriangle
-} from "react-icons/fa";
+  FontAwesome,
+  FontAwesome5 
+} from '@expo/vector-icons';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView
+} from 'react-native';
 
 export default function DepositPage() {
   const [formData, setFormData] = useState({
@@ -198,202 +200,408 @@ export default function DepositPage() {
 
   if (tokenLoading) {
     return (
-      <div className="min-h-screen bg-blue-600 flex items-center justify-center px-4">
-        <div className="bg-white rounded-xl p-8 text-center">
-          <FaSpinner className="animate-spin text-4xl text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Initializing payment system...</p>
-        </div>
-      </div>
+      <View style={styles.loadingContainer}>
+        <View style={styles.loadingBox}>
+          <FontAwesome name="spinner" size={24} color="#0066cc" />
+          <Text style={styles.loadingText}>Initializing payment system...</Text>
+        </View>
+      </View>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center px-4 py-8">
-      <div className="bg-white shadow-2xl rounded-2xl w-full max-w-lg p-6 sm:p-8 space-y-6">
-        <div className="text-center">
-          <FaMoneyBillWave className="text-4xl text-blue-600 mx-auto mb-2" />
-          <h2 className="text-2xl font-bold text-gray-800">Make a Deposit</h2>
-          <p className="text-gray-600 text-sm">Secure your funds with our vault system</p>
-        </div>
+    <View style={styles.container}>
+      <View style={styles.card}>
+        <View style={styles.header}>
+          <FontAwesome5 name="money-bill-wave" size={24} color="#0066cc" />
+          <Text style={styles.title}>Make a Deposit</Text>
+          <Text style={styles.subtitle}>Secure your funds with our vault system</Text>
+        </View>
 
         {/* Vault Info Display */}
         {vaultInfo && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-blue-700 font-semibold mb-2">
-              <FaInfoCircle />
-              <span>Your Vault</span>
-            </div>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-gray-600">Current Balance:</span>
-                <p className="font-semibold text-blue-600">E{vaultInfo.vault?.balance?.toFixed(2) || '0.00'}</p>
-              </div>
-              <div>
-                <span className="text-gray-600">Active Deposits:</span>
-                <p className="font-semibold text-green-600">{vaultInfo.lockedDeposits?.length || 0}</p>
-              </div>
-            </div>
-          </div>
+          <View style={styles.vaultInfo}>
+            <View style={styles.vaultInfoHeader}>
+              <FontAwesome name="info-circle" size={16} color="#0066cc" />
+              <Text style={styles.vaultInfoTitle}>Your Vault</Text>
+            </View>
+            <View style={styles.vaultInfoContent}>
+              <View style={styles.vaultInfoItem}>
+                <Text style={styles.vaultInfoLabel}>Current Balance:</Text>
+                <Text style={styles.vaultInfoValue}>E{vaultInfo.vault?.balance?.toFixed(2) || '0.00'}</Text>
+              </View>
+              <View style={styles.vaultInfoItem}>
+                <Text style={styles.vaultInfoLabel}>Active Deposits:</Text>
+                <Text style={styles.vaultInfoValue}>{vaultInfo.lockedDeposits?.length || 0}</Text>
+              </View>
+            </View>
+          </View>
         )}
 
         {/* Message Display */}
         {message && (
-          <div
-            className={`text-sm whitespace-pre-line px-4 py-3 rounded-lg border ${
-              message.type === "success"
-                ? "bg-green-50 text-green-700 border-green-200"
-                : "bg-red-50 text-red-700 border-red-200"
-            }`}
-          >
-            <div className="flex items-start gap-2">
+          <View style={[styles.messageBox, message.type === "success" ? styles.successMessage : styles.errorMessage]}>
+            <View style={styles.messageContent}>
               {message.type === "success" ? (
-                <FaCheckCircle className="text-green-600 mt-0.5 flex-shrink-0" />
+                <FontAwesome name="check-circle" size={16} color="#28a745" />
               ) : (
-                <FaExclamationTriangle className="text-red-600 mt-0.5 flex-shrink-0" />
+                <FontAwesome name="exclamation-triangle" size={16} color="#dc3545" />
               )}
-              <span>{message.text}</span>
-            </div>
-          </div>
+              <Text style={styles.messageText}>{message.text}</Text>
+            </View>
+          </View>
         )}
 
-        <div className="space-y-6">
+        <ScrollView showsVerticalScrollIndicator={false} style={styles.form}>
           {/* Amount Input */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Deposit Amount (E)
-            </label>
-            <div className="relative">
-              <FaMoneyBillWave className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="number"
-                name="amount"
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Deposit Amount (E)</Text>
+            <View style={styles.inputWrapper}>
+              <FontAwesome5 name="money-bill-wave" size={16} color="#999" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
                 placeholder="Enter amount (min. E10)"
+                placeholderTextColor="#999"
+                keyboardType="numeric"
+                name="amount"
                 value={formData.amount}
                 onChange={handleInputChange}
-                min="10"
-                step="0.01"
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors"
                 disabled={loading}
               />
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Minimum deposit: E10</p>
-          </div>
+            </View>
+            <Text style={styles.helperText}>Minimum deposit: E10</Text>
+          </View>
 
           {/* Lock Period Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Lock Period
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Lock Period</Text>
+            <View style={styles.lockPeriodContainer}>
               {lockPeriodOptions.map((option) => (
-                <button
+                <TouchableOpacity
                   key={option.days}
-                  type="button"
-                  onClick={() => handleLockPeriodSelect(option.days)}
+                  onPress={() => handleLockPeriodSelect(option.days)}
                   disabled={loading}
-                  className={`p-3 rounded-lg border-2 text-left transition-all ${
-                    formData.lockDays === option.days.toString()
-                      ? 'border-blue-500 bg-blue-50'
-                      : option.color
-                  } hover:shadow-md disabled:opacity-50`}
+                  style={[styles.lockPeriodButton, formData.lockDays === option.days.toString() ? styles.lockPeriodButtonActive : { borderColor: option.color }]}
                 >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold text-gray-800">{option.label}</p>
-                      <p className="text-xs text-gray-600">{option.penalty}</p>
-                    </div>
-                    <FaLock className="text-gray-400" />
-                  </div>
-                </button>
+                  <View style={styles.lockPeriodContent}>
+                    <Text style={styles.lockPeriodLabel}>{option.label}</Text>
+                    <Text style={styles.lockPeriodPenalty}>{option.penalty}</Text>
+                  </View>
+                  <FontAwesome name="lock" size={16} color="#999" />
+                </TouchableOpacity>
               ))}
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
+            </View>
+            <Text style={styles.helperText}>
               Early withdrawal from 1-3 day locks incurs a 10% penalty + E5 fee
-            </p>
-          </div>
+            </Text>
+          </View>
 
           {/* Custom Lock Period */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Or Enter Custom Days
-            </label>
-            <div className="relative">
-              <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="number"
-                name="lockDays"
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Or Enter Custom Days</Text>
+            <View style={styles.inputWrapper}>
+              <FontAwesome name="lock" size={16} color="#999" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
                 placeholder="Custom lock period (days)"
+                placeholderTextColor="#999"
+                keyboardType="numeric"
+                name="lockDays"
                 value={formData.lockDays}
                 onChange={handleInputChange}
-                min="1"
-                max="365"
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors"
                 disabled={loading}
               />
-            </div>
-          </div>
+            </View>
+          </View>
 
           {/* Phone Number */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Phone Number
-            </label>
-            <div className="relative">
-              <FaRegCreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="tel"
-                name="phoneNumber"
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Phone Number</Text>
+            <View style={styles.inputWrapper}>
+              <FontAwesome name="credit-card" size={16} color="#999" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
                 placeholder="76123456 or 26876123456"
+                placeholderTextColor="#999"
+                keyboardType="phone-pad"
+                name="phoneNumber"
                 value={formData.phoneNumber}
                 onChange={handleInputChange}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors"
                 disabled={loading}
               />
-            </div>
-            <p className="text-xs text-gray-500 mt-1">
+            </View>
+            <Text style={styles.helperText}>
               Enter your Eswatini mobile number (76, 78, or 79)
-            </p>
-          </div>
+            </Text>
+          </View>
 
           {/* Deposit Button */}
-          <button
-            onClick={handleDeposit}
+          <TouchableOpacity
+            onPress={handleDeposit}
             disabled={loading || !momoToken}
-            className={`w-full py-3 rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2 ${
-              loading || !momoToken
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 shadow-lg hover:shadow-xl"
-            }`}
+            style={[styles.depositButton, (loading || !momoToken) && styles.depositButtonDisabled]}
           >
             {loading ? (
               <>
-                <FaSpinner className="animate-spin" />
-                Processing Deposit...
+                <FontAwesome name="spinner" size={16} color="#fff" style={styles.spinner} />
+                <Text style={styles.depositButtonText}>Processing Deposit...</Text>
               </>
             ) : (
               <>
-                <FaMoneyBillWave />
-                Deposit Funds
+                <FontAwesome5 name="money-bill-wave" size={16} color="#fff" />
+                <Text style={styles.depositButtonText}>Deposit Funds</Text>
               </>
             )}
-          </button>
-        </div>
+          </TouchableOpacity>
+        </ScrollView>
 
         {/* Important Information */}
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm">
-          <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-            <FaInfoCircle className="text-blue-600" />
-            Important Information
-          </h4>
-          <ul className="space-y-1 text-gray-600">
-            <li>• Minimum deposit: E10</li>
-            <li>• Funds are locked for the selected period</li>
-            <li>• Early withdrawal from 1-3 day locks: 10% penalty + E5 fee</li>
-            <li>• Withdrawals available 24 hours after deposit</li>
-            <li>• All transactions are secured by MoMo API</li>
-          </ul>
-        </div>
-      </div>
-    </div>
+        <View style={styles.infoBox}>
+          <Text style={styles.infoTitle}>Important Information</Text>
+          <View style={styles.infoList}>
+            <Text style={styles.infoItem}>• Minimum deposit: E10</Text>
+            <Text style={styles.infoItem}>• Funds are locked for the selected period</Text>
+            <Text style={styles.infoItem}>• Early withdrawal from 1-3 day locks: 10% penalty + E5 fee</Text>
+            <Text style={styles.infoItem}>• Withdrawals available 24 hours after deposit</Text>
+            <Text style={styles.infoItem}>• All transactions are secured by MoMo API</Text>
+          </View>
+        </View>
+      </View>
+    </View>
   );
 }
+
+// Add your styles here
+const styles = {
+  container: {
+    flex: 1,
+    backgroundColor: '#f0f4f8',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+  },
+  card: {
+    width: '100%',
+    maxWidth: 600,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 2,
+    padding: 24,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: 8,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#666',
+  },
+  vaultInfo: {
+    backgroundColor: '#e7f3ff',
+    borderColor: '#b3d7ff',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 24,
+  },
+  vaultInfoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  vaultInfoTitle: {
+    fontSize: 16,
+    fontWeight: 'semibold',
+    color: '#0066cc',
+    marginLeft: 8,
+  },
+  vaultInfoContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  vaultInfoItem: {
+    flex: 1,
+    marginRight: 8,
+  },
+  vaultInfoLabel: {
+    fontSize: 12,
+    color: '#666',
+  },
+  vaultInfoValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  messageBox: {
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 24,
+  },
+  successMessage: {
+    backgroundColor: '#d4edda',
+    borderColor: '#c3e6cb',
+  },
+  errorMessage: {
+    backgroundColor: '#f8d7da',
+    borderColor: '#f5c6cb',
+  },
+  messageContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  messageText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#333',
+  },
+  form: {
+    maxHeight: 400,
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: 'medium',
+    color: '#333',
+    marginBottom: 8,
+  },
+  inputWrapper: {
+    position: 'relative',
+  },
+  inputIcon: {
+    position: 'absolute',
+    left: 12,
+    top: '50%',
+    transform: [{ translateY: -50 }],
+    color: '#999',
+  },
+  input: {
+    height: 48,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    paddingHorizontal: 48,
+    fontSize: 16,
+    color: '#333',
+    backgroundColor: '#f9f9f9',
+  },
+  helperText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+  },
+  lockPeriodContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  lockPeriodButton: {
+    flex: 1,
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 16,
+    marginRight: 8,
+    marginBottom: 8,
+    backgroundColor: '#f9f9f9',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  lockPeriodButtonActive: {
+    borderColor: '#0066cc',
+    backgroundColor: '#e7f3ff',
+  },
+  lockPeriodContent: {
+    flex: 1,
+  },
+  lockPeriodLabel: {
+    fontSize: 16,
+    fontWeight: 'medium',
+    color: '#333',
+  },
+  lockPeriodPenalty: {
+    fontSize: 12,
+    color: '#666',
+  },
+  depositButton: {
+    height: 48,
+    borderRadius: 8,
+    backgroundColor: '#0066cc',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  depositButtonDisabled: {
+    backgroundColor: '#ccc',
+  },
+  depositButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginLeft: 8,
+  },
+  infoBox: {
+    backgroundColor: '#f7f9fc',
+    borderColor: '#d1e7dd',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 16,
+    marginTop: 24,
+  },
+  infoTitle: {
+    fontSize: 16,
+    fontWeight: 'semibold',
+    color: '#333',
+    marginBottom: 8,
+  },
+  infoList: {
+    paddingLeft: 16,
+  },
+  infoItem: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 4,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#0066cc',
+  },
+  loadingBox: {
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#333',
+    marginTop: 8,
+  },
+  spinner: {
+    marginRight: 8,
+  },
+};

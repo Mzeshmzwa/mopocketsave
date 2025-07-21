@@ -23,8 +23,9 @@ const Onboarding = () => {
   }, []);
 
   const handleComplete = () => {
+    console.log("Navigating to auth screen...");
     setIsFirstLaunch(false);
-    router.replace("/(tabs)/home");
+    router.push("/auth"); // Changed to navigate to auth screen
   };
 
   return (
@@ -32,7 +33,10 @@ const Onboarding = () => {
       style={[styles.container, { backgroundColor: colors.background }]}
     >
       <TouchableOpacity
-        onPress={handleComplete}
+        onPress={() => {
+          console.log("Skip pressed");
+          handleComplete();
+        }}
         style={styles.skipButton}
       >
         <Text
@@ -90,11 +94,15 @@ const Onboarding = () => {
       </Swiper>
       <CustomButton
         title={isLastSlide ? "Get Started" : "Next"}
-        onPress={() =>
+        onPress={() => {
+          console.log(
+            "Button pressed:",
+            isLastSlide ? "Get Started" : "Next"
+          );
           isLastSlide
             ? handleComplete()
-            : swiperRef.current?.scrollBy(1)
-        }
+            : swiperRef.current?.scrollBy(1);
+        }}
         style={styles.customButton}
       />
     </SafeAreaView>
@@ -136,7 +144,7 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: 300,
-    borderRadius: 6
+    borderRadius: 6,
   },
   titleContainer: {
     width: "100%",

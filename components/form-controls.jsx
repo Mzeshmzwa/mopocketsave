@@ -1,64 +1,100 @@
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import PropTypes from "prop-types";
 
 function CommonForm({
-  formControls,
-  formData,
+  formControls = [],
+  formData = {},
   setFormData,
   handleSubmit,
   buttonText,
   isButtonDisabled,
 }) {
-  function handleInputChange(e, field) {
-    setFormData({ ...formData, [field.name]: e.target.value });
+  function handleInputChange(text, field) {
+    setFormData({ ...formData, [field.name]: text });
   }
 
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        handleSubmit();
-      }}
-      className="space-y-4"
-    >
-      {formControls.map((field) => (
-        <div key={field.name} className="flex flex-col">
-          <label htmlFor={field.name} className="text-sm font-medium">
-            {field.label}
-          </label>
-          <input
-            type={field.type}
-            name={field.name}
-            value={formData[field.name] || ""}
-            onChange={(e) => handleInputChange(e, field)}
+    <View style={styles.container}>
+      {formControls?.map((field) => (
+        <View key={field.name} style={styles.inputContainer}>
+          <Text style={styles.label}>{field.label}</Text>
+          <TextInput
+            style={styles.input}
+            value={formData?.[field.name] ?? ""}
+            onChangeText={(text) => handleInputChange(text, field)}
             placeholder={field.placeholder}
-            className="mt-1 px-4 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required={field.required}
+            secureTextEntry={field.type === "password"}
+            keyboardType={field.type === "number" ? "numeric" : "default"}
           />
-        </div>
+        </View>
       ))}
 
-      <button
-        type="submit"
+      <TouchableOpacity
+        onPress={handleSubmit}
         disabled={isButtonDisabled}
-        className={`w-full py-2 px-4 text-white font-semibold rounded-md transition ${
-          isButtonDisabled
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-blue-600 hover:bg-blue-700"
-        }`}
+        style={[
+          styles.button,
+          isButtonDisabled ? styles.buttonDisabled : styles.buttonEnabled,
+        ]}
       >
-        {buttonText}
-      </button>
-    </form>
+        <Text style={styles.buttonText}>{buttonText}</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
+const styles = StyleSheet.create({
+  container: {
+    gap: 16,
+  },
+  inputContainer: {
+    gap: 4,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#374151",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    fontSize: 14,
+  },
+  button: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    alignItems: "center",
+  },
+  buttonEnabled: {
+    backgroundColor: "#2563EB",
+  },
+  buttonDisabled: {
+    backgroundColor: "#9CA3AF",
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+});
+
 CommonForm.propTypes = {
-  formControls: PropTypes.array.isRequired,
-  formData: PropTypes.object.isRequired,
+  formControls: PropTypes.array,
+  formData: PropTypes.object,
   setFormData: PropTypes.func.isRequired,
   handleSubmit: PropTypes.func.isRequired,
   buttonText: PropTypes.string.isRequired,
   isButtonDisabled: PropTypes.bool.isRequired,
+};
+
+// Default props in case parent forgets to pass
+CommonForm.defaultProps = {
+  formControls: [],
+  formData: {},
 };
 
 export default CommonForm;
