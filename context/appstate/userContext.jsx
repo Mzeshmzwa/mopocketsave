@@ -1,27 +1,43 @@
-import { createContext, useState } from "react";
+import { createContext, useContext, useState } from "react";
 
-export const UserContext = createContext(null);
+const UserContext = createContext(null);
 
-export default function UserProvider({ children }) {
-  const [userVaults, setUserVaults] = useState([]); // List of user's vaults
-  const [activeVault, setActiveVault] = useState(null); // Currently selected vault
-  const [depositInProgress, setDepositInProgress] = useState(false); // Deposit loading status
-  const [withdrawalRequest, setWithdrawalRequest] = useState(null); // Withdrawal request details
+export const useUser = () => {
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new Error('useUser must be used within a UserProvider');
+  }
+  return context;
+};
+
+export const UserProvider = ({ children }) => {
+  const [userVaults, setUserVaults] = useState([]);
+  const [activeVault, setActiveVault] = useState(null);
+  const [depositInProgress, setDepositInProgress] = useState(false);
+  const [withdrawalRequest, setWithdrawalRequest] = useState(null);
+  const [vaultInfo, setVaultInfo] = useState(null);
+  const [withdrawableDeposits, setWithdrawableDeposits] = useState([]);
+
+  const value = {
+    userVaults,
+    setUserVaults,
+    activeVault,
+    setActiveVault,
+    depositInProgress,
+    setDepositInProgress,
+    withdrawalRequest,
+    setWithdrawalRequest,
+    vaultInfo,
+    setVaultInfo,
+    withdrawableDeposits,
+    setWithdrawableDeposits,
+  };
 
   return (
-    <UserContext.Provider
-      value={{
-        userVaults,
-        setUserVaults,
-        activeVault,
-        setActiveVault,
-        depositInProgress,
-        setDepositInProgress,
-        withdrawalRequest,
-        setWithdrawalRequest,
-      }}
-    >
+    <UserContext.Provider value={value}>
       {children}
     </UserContext.Provider>
   );
-}
+};
+
+export { UserContext };

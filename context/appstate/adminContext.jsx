@@ -1,8 +1,16 @@
-import  { createContext, useState } from "react";
+import { createContext, useContext, useState } from "react";
 
-export const AdminContext = createContext(null);
+const AdminContext = createContext(null);
 
-export default function AdminProvider({ children }) {
+export const useAdmin = () => {
+  const context = useContext(AdminContext);
+  if (!context) {
+    throw new Error('useAdmin must be used within an AdminProvider');
+  }
+  return context;
+};
+
+export const AdminProvider = ({ children }) => {
   const [vaultSettings, setVaultSettings] = useState({
     interestRate: 0.05,
     earlyWithdrawalPenalty: 0.1,
@@ -11,19 +19,27 @@ export default function AdminProvider({ children }) {
 
   const [allVaultUsers, setAllVaultUsers] = useState([]);
   const [adminActivityLog, setAdminActivityLog] = useState([]);
+  const [systemStats, setSystemStats] = useState(null);
+  const [revenueData, setRevenueData] = useState(null);
+
+  const value = {
+    vaultSettings,
+    setVaultSettings,
+    allVaultUsers,
+    setAllVaultUsers,
+    adminActivityLog,
+    setAdminActivityLog,
+    systemStats,
+    setSystemStats,
+    revenueData,
+    setRevenueData,
+  };
 
   return (
-    <AdminContext.Provider
-      value={{
-        vaultSettings,
-        setVaultSettings,
-        allVaultUsers,
-        setAllVaultUsers,
-        adminActivityLog,
-        setAdminActivityLog,
-      }}
-    >
+    <AdminContext.Provider value={value}>
       {children}
     </AdminContext.Provider>
   );
-}
+};
+
+export { AdminContext };
