@@ -36,3 +36,6 @@ export const darkTheme = {
     surfaceVariant: '#2A2A2A',
   },
 };
+
+// Export light theme as default
+export default lightTheme;

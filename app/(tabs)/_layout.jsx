@@ -1,10 +1,10 @@
 import { StatusBar } from "expo-status-bar";
 import { Tabs, usePathname, useRouter } from "expo-router";
-import { AntDesign, Ionicons } from "@expo/vector-icons";
+import { AntDesign, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { View, Text } from "react-native";
 import { useTheme } from "react-native-paper";
 import Feather from "@expo/vector-icons/Feather";
- // Import AuthContext
+import { useAuth } from "../../context/appstate/AuthContext";
 
 const TabIcon = ({ icon, color, label, isActive }) => (
   <View style={{ alignItems: "center", width: 70 }}>
@@ -22,7 +22,7 @@ const TabIcon = ({ icon, color, label, isActive }) => (
 const TabLayout = () => {
   const { colors, dark } = useTheme();
   const pathname = usePathname(); // Get current active route
-  useAuth(); // Get user state from AuthContext
+  const { isAuthenticated } = useAuth(); // Get user state from AuthContext
   const router = useRouter();
 
   return (
@@ -79,7 +79,7 @@ const TabLayout = () => {
             tabBarIcon: ({ color }) => (
               <TabIcon
                 icon={() => (
-                  <MaterialIcons name="account-balance-wallet" size={24} color={color} />
+                  <MaterialIcons name="account-balance" size={24} color={color} />
                 )}
                 color={color}
                 label="Withdrawals"
@@ -113,31 +113,11 @@ const TabLayout = () => {
             tabBarIcon: ({ color }) => (
               <TabIcon
                 icon={() => (
-                  <AntDesign name="setting" size={24} color={color} />
-                )}
-                color={color}
-                label="Settings"
-                isActive={pathname === "/settings"}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="profile"
-          options={{
-            title: "Profile",
-            headerShown: false,
-            tabBarIcon: ({ color }) => (
-              <TabIcon
-                icon={() => (
-                  <>
-                    <Feather name="map-pin" size={24} color={color} />
-                    <AntDesign name="user" size={24} color={color} />
-                  </>
+                  <AntDesign name="user" size={24} color={color} />
                 )}
                 color={color}
                 label="Profile"
-                isActive={pathname === "/profile"}
+                isActive={pathname === "/settings"}
               />
             ),
           }}

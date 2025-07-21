@@ -1,10 +1,17 @@
 import { Redirect, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-
-
+import { useAuth } from "../../context/appstate/AuthContext";
 
 const AuthLayout = () => {
-  const { isLoading, isAuthenticated } = useAuth();
+  const { loading, isAuthenticated } = useAuth();
+
+  if (loading) {
+    return null; // or a loading spinner
+  }
+
+  if (isAuthenticated()) {
+    return <Redirect href="/(tabs)/home" />;
+  }
 
   return (
     <>
@@ -26,9 +33,6 @@ const AuthLayout = () => {
           options={{
             headerShown: false,
           }}
-        />
-
-        <Stack.Screen
         />
       </Stack>
     </>
