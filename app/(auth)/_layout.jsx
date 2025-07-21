@@ -1,7 +1,7 @@
 import { Redirect, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 
-import { useAuth } from "../../context/appstate/AuthContext";
+
 
 const AuthLayout = () => {
   const { isLoading, isAuthenticated } = useAuth();

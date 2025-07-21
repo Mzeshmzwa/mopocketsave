@@ -3,11 +3,11 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import CommonForm from "@/components/common-form";
-import { signInFormControls, signUpFormControls } from "@/config";
-import { AuthContext } from "@/context/auth-context";
+} from "../../components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import CommonForm from "../../components/common-form";
+import { signInFormControls, signUpFormControls } from "../../config";
+import { AuthContext } from "../../context/auth-context";
 
 import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";

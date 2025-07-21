@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useFonts } from "expo-font";
 import "react-native-url-polyfill/auto";
 import { SplashScreen, Stack } from "expo-router";
-import GlobalContextProvider from "../context/appstate/GlobalContextProvider";
+
 import { PaperProvider } from "react-native-paper";
 import theme from "../theme/theme";
 import Toast from "react-native-toast-message";

@@ -22,7 +22,7 @@ const TabIcon = ({ icon, color, label, isActive }) => (
 const TabLayout = () => {
   const { colors, dark } = useTheme();
   const pathname = usePathname(); // Get current active route
-  const { isAuthenticated } = useAuth(); // Get user state from AuthContext
+  useAuth(); // Get user state from AuthContext
   const router = useRouter();
 
   return (
